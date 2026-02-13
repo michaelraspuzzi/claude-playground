@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Libby Line Edits</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --bg-raised: #181a22;
+    --bg-card: #1e2029;
+    --bg-input: #14161e;
+    --border: #2a2d3a;
+    --border-light: #353849;
+    --text: #e0e0e6;
+    --text-dim: #8b8fa3;
+    --text-faint: #5c6073;
+    --accent: #7c8aff;
+    --accent-dim: rgba(124, 138, 255, 0.15);
+    --green: #4ade80;
+    --green-bg: rgba(74, 222, 128, 0.1);
+    --green-border: rgba(74, 222, 128, 0.3);
+    --red: #f87171;
+    --red-bg: rgba(248, 113, 113, 0.1);
+    --red-border: rgba(248, 113, 113, 0.3);
+    --amber: #fbbf24;
+    --amber-bg: rgba(251, 191, 36, 0.08);
+    --amber-border: rgba(251, 191, 36, 0.25);
+    --radius: 8px;
+    --radius-sm: 5px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --mono: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+  }
+
+  html { font-size: 15px; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  header {
+    margin-bottom: 2rem;
+  }
+
+  header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+
+  header p {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    margin-top: 0.3rem;
+  }
+
+  /* Input Section */
+  .input-section {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .input-section.collapsed {
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+  }
+
+  .input-section.collapsed .input-grid,
+  .input-section.collapsed .input-actions {
+    display: none;
+  }
+
+  .input-toggle {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+
+  .input-section.collapsed .input-toggle {
+    display: flex;
+  }
+
+  .input-toggle .chevron {
+    transition: transform 0.2s;
+  }
+
+  .input-section.collapsed .input-toggle .chevron {
+    transform: rotate(-90deg);
+  }
+
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .input-col label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 0.4rem;
+  }
+
+  .input-col textarea {
+    width: 100%;
+    height: 200px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.9rem;
+    line-height: 1.65;
+    padding: 0.75rem;
+    resize: vertical;
+    transition: border-color 0.15s;
+  }
+
+  .input-col textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .input-col textarea::placeholder {
+    color: var(--text-faint);
+  }
+
+  .input-actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+  }
+
+  button {
+    font-family: var(--font);
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.45rem 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  button:hover {
+    background: var(--border);
+    color: var(--text);
+  }
+
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0f1117;
+    font-weight: 600;
+  }
+
+  button.primary:hover {
+    filter: brightness(1.15);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Review Section */
+  .review-section {
+    display: none;
+  }
+
+  .review-section.active {
+    display: block;
+  }
+
+  .review-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 220px);
+    min-height: 400px;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.85rem;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .panel-header h2 {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+  }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .stat .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .stat.pending .dot { background: var(--amber); }
+  .stat.accepted .dot { background: var(--green); }
+  .stat.rejected .dot { background: var(--red); }
+
+  .toolbar-actions {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .toolbar-actions button {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.7rem;
+  }
+
+  /* Keyboard hint */
+  .kbd-hint {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    margin-bottom: 1rem;
+  }
+
+  .kbd-hint kbd {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    padding: 0.1rem 0.35rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin: 0 0.15rem;
+  }
+
+  /* Edit Cards */
+  .edits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .edit-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--amber);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+    transition: all 0.2s;
+  }
+
+  .edit-card.focused {
+    border-color: var(--accent);
+    border-left-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  .edit-card.accepted {
+    border-left-color: var(--green);
+    background: var(--green-bg);
+  }
+
+  .edit-card.rejected {
+    border-left-color: var(--red);
+    background: var(--red-bg);
+    opacity: 0.7;
+  }
+
+  .edit-card.flash-accept {
+    animation: flashGreen 0.35s ease-out;
+  }
+
+  .edit-card.flash-reject {
+    animation: flashRed 0.35s ease-out;
+  }
+
+  @keyframes flashGreen {
+    0% { background: rgba(74, 222, 128, 0.25); }
+    100% { background: var(--green-bg); }
+  }
+
+  @keyframes flashRed {
+    0% { background: rgba(248, 113, 113, 0.25); }
+    100% { background: var(--red-bg); }
+  }
+
+  .edit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .edit-number {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .edit-actions {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .edit-actions button {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 3px;
+  }
+
+  .btn-accept {
+    border-color: var(--green-border);
+    color: var(--green);
+  }
+
+  .btn-accept:hover, .btn-accept.active {
+    background: var(--green-bg);
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .btn-reject {
+    border-color: var(--red-border);
+    color: var(--red);
+  }
+
+  .btn-reject:hover, .btn-reject.active {
+    background: var(--red-bg);
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  .edit-diff {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .edit-diff .ctx {
+    color: var(--text-dim);
+  }
+
+  .edit-diff .del {
+    background: rgba(248, 113, 113, 0.18);
+    color: var(--red);
+    text-decoration: line-through;
+    text-decoration-color: rgba(248, 113, 113, 0.5);
+    border-radius: 2px;
+    padding: 0.05rem 0.15rem;
+    margin: 0 0.05rem;
+  }
+
+  .edit-diff .ins {
+    background: rgba(74, 222, 128, 0.15);
+    color: var(--green);
+    border-radius: 2px;
+    padding: 0.05rem 0.15rem;
+    margin: 0 0.05rem;
+  }
+
+  .edit-diff .para-break {
+    display: block;
+    height: 0.6rem;
+  }
+
+  /* No edits */
+  .no-edits {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  /* Output Section */
+  .copy-btn {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.7rem;
+  }
+
+  .copy-btn.copied {
+    color: var(--green);
+    border-color: var(--green-border);
+  }
+
+  .output-text {
+    padding: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .output-text .para {
+    margin-bottom: 1em;
+  }
+
+  .output-text .para:last-child {
+    margin-bottom: 0;
+  }
+
+  .output-text:empty::before {
+    content: 'Final text will appear here as you accept or reject edits...';
+    color: var(--text-faint);
+    font-style: italic;
+  }
+
+  .output-text .edit-highlight {
+    border-radius: 2px;
+    padding: 0.05rem 0.1rem;
+    margin: 0 -0.1rem;
+    transition: background 0.25s, box-shadow 0.25s;
+  }
+
+  .output-text .edit-highlight.active {
+    background: rgba(124, 138, 255, 0.2);
+    box-shadow: 0 0 0 2px rgba(124, 138, 255, 0.35);
+  }
+
+  .output-text .edit-highlight.is-accepted {
+    color: var(--green);
+  }
+
+  .output-text .edit-highlight.is-accepted.active {
+    background: rgba(74, 222, 128, 0.15);
+    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.35);
+  }
+
+  .output-text .edit-highlight.is-rejected.active {
+    background: rgba(248, 113, 113, 0.1);
+    box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.25);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  @media (max-width: 860px) {
+    .input-grid {
+      grid-template-columns: 1fr;
+    }
+    .review-panels {
+      grid-template-columns: 1fr;
+    }
+    .panel {
+      max-height: 50vh;
+    }
+    .toolbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Libby Line Edits</h1>
+    <p>Paste your original and edited text, then accept or reject each change.</p>
+  </header>
+
+  <div class="input-section" id="inputSection">
+    <div class="input-toggle" onclick="toggleInputs()">
+      <span class="chevron">&#9660;</span>
+      <span>Edit inputs</span>
+    </div>
+    <div class="input-grid">
+      <div class="input-col">
+        <label>Original</label>
+        <textarea id="originalText" placeholder="Paste your original blog post here..."></textarea>
+      </div>
+      <div class="input-col">
+        <label>Edited</label>
+        <textarea id="editedText" placeholder="Paste the edited version here..."></textarea>
+      </div>
+    </div>
+    <div class="input-actions">
+      <button onclick="loadSample()">Load Sample</button>
+      <button class="primary" onclick="compare()" id="compareBtn">Compare</button>
+    </div>
+  </div>
+
+  <div class="review-section" id="reviewSection">
+    <div class="toolbar">
+      <div class="stats" id="stats"></div>
+      <div class="toolbar-actions">
+        <button onclick="bulkAction('accept')">Accept All</button>
+        <button onclick="bulkAction('reject')">Reject All</button>
+        <button onclick="bulkAction('reset')">Reset</button>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="kbd-hint">
+      <kbd>j</kbd>/<kbd>k</kbd> navigate &nbsp;
+      <kbd>a</kbd> accept &nbsp;
+      <kbd>r</kbd> reject &nbsp;
+      <kbd>u</kbd> undo
+    </div>
+    <div class="review-panels">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Final Text</h2>
+          <button class="copy-btn" id="copyBtn" onclick="copyOutput()">Copy</button>
+        </div>
+        <div class="panel-body">
+          <div class="output-text" id="outputText"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Edits</h2>
+        </div>
+        <div class="panel-body">
+          <div class="edits-list" id="editsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let state = {
+  edits: [],         // {id, contextBefore, contextAfter, deleted, inserted, status}
+  focusedIdx: 0,
+  diffOps: [],       // full diff operations with edit IDs tagged
+};
+
+// ── Sample Data ──
+const SAMPLE_ORIGINAL = `I've been thinking a lot about how we build software these days. It's really interesting to me that so many teams are basically just shipping features as fast as they can without really stopping to think about whether those features actually matter.
+
+In my experience, the best teams I've worked with tend to spend a lot of time upfront really understanding the problem before they start writing any code. This is something that I think is really important and often gets overlooked in the rush to deliver.
+
+There are a number of different things that you can do to improve your team's overall approach to building software. First, you should make sure that everyone on the team understands the why behind what you're building. Second, it's important to have regular check-ins where you discuss whether you're still on the right track. Third, don't be afraid to throw away code that isn't working out.
+
+The reality is that most teams don't actually do any of these things. They just keep going and going without ever really pausing to reflect. And I think that's a real shame, because the teams that do pause and reflect tend to build much better products in the end.
+
+So I guess what I'm trying to say is that it's worth investing the time upfront to get your process right. It might feel slow at first, but it will pay off in the long run. Trust me on this one.`;
+
+const SAMPLE_EDITED = `I've been thinking about how we build software. So many teams ship features as fast as they can without asking whether those features matter.
+
+The best teams spend time upfront understanding the problem before writing code. This discipline gets overlooked in the rush to deliver.
+
+You can improve your team's approach to building software in concrete ways. First, ensure everyone understands the why behind what you're building. Second, hold regular check-ins to discuss whether you're on track. Third, throw away code that isn't working.
+
+Most teams skip these steps. They keep going without pausing to reflect. That's a shame\u2014teams that pause build better products.
+
+Invest the time upfront to get your process right. It feels slow at first, but pays off.`;
+
+// ── Diff Algorithm ──
+function tokenize(text) {
+  const paragraphs = text.split(/\n\s*\n/);
+  const tokens = [];
+  paragraphs.forEach((para, i) => {
+    if (i > 0) tokens.push('\n\n');
+    const words = para.trim().split(/\s+/).filter(w => w.length > 0);
+    tokens.push(...words);
+  });
+  return tokens;
+}
+
+function computeDiff(oldTokens, newTokens) {
+  const m = oldTokens.length;
+  const n = newTokens.length;
+
+  // LCS dynamic programming
+  const dp = [];
+  for (let i = 0; i <= m; i++) {
+    dp[i] = new Uint16Array(n + 1);
+  }
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (oldTokens[i - 1] === newTokens[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+  }
+
+  // Backtrack
+  const ops = [];
+  let i = m, j = n;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && oldTokens[i - 1] === newTokens[j - 1]) {
+      ops.unshift({ type: 'keep', value: oldTokens[i - 1] });
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      ops.unshift({ type: 'insert', value: newTokens[j - 1] });
+      j--;
+    } else {
+      ops.unshift({ type: 'delete', value: oldTokens[i - 1] });
+      i--;
+    }
+  }
+
+  return ops;
+}
+
+function groupEdits(diffOps) {
+  const edits = [];
+  let i = 0;
+
+  while (i < diffOps.length) {
+    if (diffOps[i].type !== 'keep') {
+      const changeStart = i;
+      while (i < diffOps.length && diffOps[i].type !== 'keep') i++;
+      const changeEnd = i;
+
+      // Context words (up to 5 before and after, skip paragraph breaks)
+      const ctxBefore = [];
+      for (let k = changeStart - 1; k >= 0 && ctxBefore.length < 5; k--) {
+        if (diffOps[k].type === 'keep') {
+          if (diffOps[k].value === '\n\n') { ctxBefore.unshift('\n\n'); break; }
+          ctxBefore.unshift(diffOps[k].value);
+        }
+      }
+
+      const ctxAfter = [];
+      for (let k = changeEnd; k < diffOps.length && ctxAfter.length < 5; k++) {
+        if (diffOps[k].type === 'keep') {
+          if (diffOps[k].value === '\n\n') { ctxAfter.push('\n\n'); break; }
+          ctxAfter.push(diffOps[k].value);
+        }
+      }
+
+      const changes = diffOps.slice(changeStart, changeEnd);
+      const deleted = changes.filter(c => c.type === 'delete').map(c => c.value);
+      const inserted = changes.filter(c => c.type === 'insert').map(c => c.value);
+
+      const editId = edits.length;
+
+      // Tag ops with edit ID
+      for (let k = changeStart; k < changeEnd; k++) {
+        diffOps[k].editId = editId;
+      }
+
+      edits.push({
+        id: editId,
+        contextBefore: ctxBefore,
+        contextAfter: ctxAfter,
+        deleted,
+        inserted,
+        changes,
+        status: 'pending',
+        opsRange: [changeStart, changeEnd],
+      });
+    } else {
+      i++;
+    }
+  }
+
+  return edits;
+}
+
+// ── Compare ──
+function compare() {
+  const origText = document.getElementById('originalText').value.trim();
+  const editText = document.getElementById('editedText').value.trim();
+
+  if (!origText || !editText) return;
+
+  const oldTokens = tokenize(origText);
+  const newTokens = tokenize(editText);
+
+  const diffOps = computeDiff(oldTokens, newTokens);
+  const edits = groupEdits(diffOps);
+
+  state.diffOps = diffOps;
+  state.edits = edits;
+  state.focusedIdx = 0;
+
+  // Collapse inputs
+  document.getElementById('inputSection').classList.add('collapsed');
+
+  // Show review
+  document.getElementById('reviewSection').classList.add('active');
+
+  renderAll();
+}
+
+function toggleInputs() {
+  const section = document.getElementById('inputSection');
+  section.classList.toggle('collapsed');
+}
+
+function loadSample() {
+  document.getElementById('originalText').value = SAMPLE_ORIGINAL;
+  document.getElementById('editedText').value = SAMPLE_EDITED;
+}
+
+// ── Rendering ──
+function renderAll() {
+  renderStats();
+  renderProgress();
+  renderEdits();
+  renderOutput();
+}
+
+function renderStats() {
+  const pending = state.edits.filter(e => e.status === 'pending').length;
+  const accepted = state.edits.filter(e => e.status === 'accepted').length;
+  const rejected = state.edits.filter(e => e.status === 'rejected').length;
+
+  document.getElementById('stats').innerHTML = `
+    <span class="stat pending"><span class="dot"></span>${pending} pending</span>
+    <span class="stat accepted"><span class="dot"></span>${accepted} accepted</span>
+    <span class="stat rejected"><span class="dot"></span>${rejected} rejected</span>
+  `;
+}
+
+function renderProgress() {
+  const decided = state.edits.filter(e => e.status !== 'pending').length;
+  const pct = state.edits.length === 0 ? 0 : (decided / state.edits.length * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function renderEdits() {
+  const container = document.getElementById('editsList');
+
+  if (state.edits.length === 0) {
+    container.innerHTML = '<div class="no-edits">No differences found between the texts.</div>';
+    return;
+  }
+
+  container.innerHTML = state.edits.map((edit, idx) => {
+    const statusClass = edit.status !== 'pending' ? edit.status : '';
+    const focusedClass = idx === state.focusedIdx ? 'focused' : '';
+
+    // Build inline diff HTML
+    const diffHtml = buildDiffHtml(edit);
+
+    const acceptActive = edit.status === 'accepted' ? 'active' : '';
+    const rejectActive = edit.status === 'rejected' ? 'active' : '';
+
+    return `
+      <div class="edit-card ${statusClass} ${focusedClass}" id="edit-${idx}" onclick="focusEdit(${idx})">
+        <div class="edit-header">
+          <span class="edit-number">Edit ${idx + 1} of ${state.edits.length}</span>
+          <div class="edit-actions">
+            <button class="btn-accept ${acceptActive}" onclick="event.stopPropagation(); setStatus(${idx}, 'accepted')">Accept</button>
+            <button class="btn-reject ${rejectActive}" onclick="event.stopPropagation(); setStatus(${idx}, 'rejected')">Reject</button>
+          </div>
+        </div>
+        <div class="edit-diff">${diffHtml}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function buildDiffHtml(edit) {
+  const parts = [];
+
+  // Context before
+  const before = edit.contextBefore.filter(w => w !== '\n\n');
+  if (before.length > 0) {
+    parts.push(`<span class="ctx">\u2026${before.join(' ')} </span>`);
+  }
+
+  // Deleted words
+  if (edit.deleted.length > 0) {
+    const delWords = edit.deleted.filter(w => w !== '\n\n');
+    if (delWords.length > 0) {
+      parts.push(`<span class="del">${esc(delWords.join(' '))}</span>`);
+    }
+  }
+
+  // Inserted words
+  if (edit.inserted.length > 0) {
+    const insWords = edit.inserted.filter(w => w !== '\n\n');
+    if (insWords.length > 0) {
+      parts.push(`<span class="ins">${esc(insWords.join(' '))}</span>`);
+    }
+  }
+
+  // Context after
+  const after = edit.contextAfter.filter(w => w !== '\n\n');
+  if (after.length > 0) {
+    parts.push(`<span class="ctx"> ${after.join(' ')}\u2026</span>`);
+  }
+
+  return parts.join(' ');
+}
+
+function esc(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderOutput() {
+  // Build tokens with edit metadata: {value, editId?, editStatus?}
+  const tokens = [];
+
+  for (const op of state.diffOps) {
+    if (op.type === 'keep') {
+      tokens.push({ value: op.value, editId: null });
+    } else if (op.editId !== undefined) {
+      const edit = state.edits[op.editId];
+      if (edit.status === 'accepted') {
+        if (op.type === 'insert') tokens.push({ value: op.value, editId: op.editId, status: 'accepted' });
+      } else {
+        // pending or rejected: keep original
+        if (op.type === 'delete') tokens.push({ value: op.value, editId: op.editId, status: edit.status });
+      }
+    }
+  }
+
+  // Build HTML with paragraph wrapping and edit spans
+  let html = '';
+  let currentPara = '';
+  let insideEditSpan = null;
+
+  function flushEditSpan() {
+    if (insideEditSpan !== null) {
+      const statusCls = insideEditSpan.status === 'accepted' ? ' is-accepted' : insideEditSpan.status === 'rejected' ? ' is-rejected' : '';
+      currentPara += `</span>`;
+      // Re-wrap with proper classes (we'll do it differently below)
+      insideEditSpan = null;
+    }
+  }
+
+  // Simpler approach: group consecutive tokens by editId, build spans
+  html = '';
+  let paragraphs = [];
+  let curPara = [];
+
+  for (const tok of tokens) {
+    if (tok.value === '\n\n') {
+      paragraphs.push(curPara);
+      curPara = [];
+    } else {
+      curPara.push(tok);
+    }
+  }
+  if (curPara.length > 0) paragraphs.push(curPara);
+
+  const paraHtmls = paragraphs.map(paraToks => {
+    let result = '';
+    let i = 0;
+    while (i < paraToks.length) {
+      const tok = paraToks[i];
+      if (tok.editId !== null) {
+        // Collect consecutive tokens with same editId
+        const editId = tok.editId;
+        const editWords = [];
+        while (i < paraToks.length && paraToks[i].editId === editId) {
+          editWords.push(paraToks[i].value);
+          i++;
+        }
+        const statusCls = tok.status === 'accepted' ? ' is-accepted' : tok.status === 'rejected' ? ' is-rejected' : '';
+        const activeCls = state.focusedIdx === editId ? ' active' : '';
+        result += (result ? ' ' : '') + `<span class="edit-highlight${statusCls}${activeCls}" data-edit-id="${editId}">${esc(editWords.join(' '))}</span>`;
+      } else {
+        result += (result ? ' ' : '') + esc(tok.value);
+        i++;
+      }
+    }
+    return result;
+  });
+
+  html = paraHtmls.map(p => `<div class="para">${p}</div>`).join('');
+
+  const outputEl = document.getElementById('outputText');
+  outputEl.innerHTML = html;
+}
+
+function scrollOutputToEdit(editId) {
+  const outputEl = document.getElementById('outputText');
+  const span = outputEl.querySelector(`[data-edit-id="${editId}"]`);
+  if (span) {
+    span.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+// ── Actions ──
+function setStatus(idx, status) {
+  const edit = state.edits[idx];
+  if (edit.status === status) {
+    edit.status = 'pending'; // toggle off
+  } else {
+    edit.status = status;
+  }
+
+  renderAll();
+
+  // Flash animation
+  const card = document.getElementById(`edit-${idx}`);
+  if (card && status !== 'pending') {
+    card.classList.remove('flash-accept', 'flash-reject');
+    void card.offsetWidth; // force reflow
+    card.classList.add(edit.status === 'accepted' ? 'flash-accept' : 'flash-reject');
+  }
+}
+
+function focusEdit(idx) {
+  state.focusedIdx = idx;
+  renderAll();
+  scrollToEdit(idx);
+  scrollOutputToEdit(idx);
+}
+
+function scrollToEdit(idx) {
+  const card = document.getElementById(`edit-${idx}`);
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function bulkAction(action) {
+  for (const edit of state.edits) {
+    if (action === 'reset') edit.status = 'pending';
+    else if (action === 'accept') edit.status = 'accepted';
+    else if (action === 'reject') edit.status = 'rejected';
+  }
+  renderAll();
+}
+
+function copyOutput() {
+  const text = document.getElementById('outputText').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+// ── Keyboard shortcuts ──
+document.addEventListener('keydown', (e) => {
+  // Don't capture if typing in textarea
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (state.edits.length === 0) return;
+
+  const key = e.key.toLowerCase();
+
+  if (key === 'j' || key === 'arrowdown') {
+    e.preventDefault();
+    state.focusedIdx = Math.min(state.focusedIdx + 1, state.edits.length - 1);
+    renderAll();
+    scrollToEdit(state.focusedIdx);
+    scrollOutputToEdit(state.focusedIdx);
+  } else if (key === 'k' || key === 'arrowup') {
+    e.preventDefault();
+    state.focusedIdx = Math.max(state.focusedIdx - 1, 0);
+    renderAll();
+    scrollToEdit(state.focusedIdx);
+    scrollOutputToEdit(state.focusedIdx);
+  } else if (key === 'a') {
+    e.preventDefault();
+    setStatus(state.focusedIdx, 'accepted');
+  } else if (key === 'r') {
+    e.preventDefault();
+    setStatus(state.focusedIdx, 'rejected');
+  } else if (key === 'u') {
+    e.preventDefault();
+    state.edits[state.focusedIdx].status = 'pending';
+    renderAll();
+  }
+});
+</script>
+
+</body>
+</html>
