@@ -1,0 +1,2010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Tutor — Code Map</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --bg-surface: #161b22;
+  --bg-elevated: #1c2129;
+  --bg-overlay: #21262d;
+  --border: #30363d;
+  --border-focus: #58a6ff;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --text-dim: #484f58;
+  --accent: #58a6ff;
+  --accent-dim: #1f6feb33;
+  --blue: #58a6ff;
+  --purple: #bc8cff;
+  --green: #3fb950;
+  --orange: #f0883e;
+  --red: #f85149;
+  --cyan: #39d2c0;
+  --yellow: #d29922;
+  --pink: #f778ba;
+  --node-blue: #1a3a5c;
+  --node-purple: #2d1f4e;
+  --node-green: #1a3d2e;
+  --node-orange: #3d2a1a;
+  --node-cyan: #1a3d3d;
+  --node-yellow: #3d3a1a;
+  --node-red: #3d1a1a;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* ——— Top Bar ——— */
+.topbar {
+  height: 48px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  z-index: 100;
+  position: relative;
+}
+.topbar-logo {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+.topbar-logo span { color: var(--text-muted); font-weight: 400; }
+.topbar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+}
+.topbar-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.topbar-stat b { color: var(--text); font-weight: 600; }
+.topbar-search {
+  margin-left: auto;
+  position: relative;
+}
+.topbar-search input {
+  width: 240px;
+  height: 30px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 10px 0 30px;
+  font-size: 12px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.topbar-search input:focus { border-color: var(--accent); }
+.topbar-search input::placeholder { color: var(--text-dim); }
+.topbar-search svg {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  pointer-events: none;
+}
+.search-results {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  width: 320px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: none;
+  z-index: 200;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.search-results.open { display: block; }
+.search-result-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.search-result-item:hover { background: var(--bg-overlay); }
+.search-result-item:last-child { border-bottom: none; }
+.search-result-name { font-size: 13px; font-weight: 600; }
+.search-result-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.search-result-match { background: var(--accent-dim); color: var(--accent); padding: 1px 3px; border-radius: 2px; }
+
+/* ——— Main Layout ——— */
+.main {
+  display: flex;
+  height: calc(100% - 48px);
+}
+
+/* ——— Sidebar ——— */
+.sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-section {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+/* Layer toggles */
+.layer-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+  font-size: 12px;
+  user-select: none;
+  transition: opacity 0.15s;
+}
+.layer-toggle:hover { opacity: 0.85; }
+.layer-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.layer-toggle input { display: none; }
+.layer-toggle .check-box {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.layer-toggle input:checked ~ .check-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.layer-toggle input:checked ~ .check-box::after {
+  content: '✓';
+  font-size: 10px;
+  color: #fff;
+  line-height: 1;
+}
+.layer-count {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-dim);
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+/* Presets */
+.preset-btn {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+.preset-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+.preset-btn.active { border-color: var(--accent); background: var(--accent-dim); }
+
+/* Flow overlay toggles */
+.flow-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  cursor: pointer;
+  font-size: 12px;
+  user-select: none;
+}
+.flow-toggle input { display: none; }
+.flow-indicator {
+  width: 20px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Comment list */
+.comments-section {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+}
+.comments-section::-webkit-scrollbar { width: 4px; }
+.comments-section::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.comment-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  position: relative;
+}
+.comment-target { font-size: 11px; font-weight: 600; color: var(--accent); }
+.comment-file { font-size: 10px; color: var(--text-dim); }
+.comment-text { font-size: 12px; margin-top: 4px; color: var(--text-muted); }
+.comment-delete {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px;
+}
+.comment-delete:hover { color: var(--red); }
+.no-comments { font-size: 12px; color: var(--text-dim); text-align: center; padding: 20px 0; }
+
+/* ——— Canvas Area ——— */
+.canvas-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 1px 1px, var(--border) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+}
+
+svg#graph {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+svg#graph.grabbing { cursor: grabbing; }
+
+/* Zoom controls */
+.zoom-controls {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 50;
+}
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.zoom-btn:hover { background: var(--bg-elevated); border-color: var(--accent); }
+.zoom-level {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
+  padding: 2px 0;
+}
+
+/* Legend */
+.legend {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  z-index: 50;
+  font-size: 11px;
+}
+.legend-title { font-weight: 600; margin-bottom: 6px; color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.legend-item { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+.legend-line { width: 24px; height: 0; border-top: 2px; }
+
+/* Minimap */
+.minimap {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 160px;
+  height: 110px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  z-index: 50;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+.minimap:hover { opacity: 1; }
+.minimap svg { width: 100%; height: 100%; }
+.minimap-viewport {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  fill: var(--accent-dim);
+  rx: 2;
+}
+
+/* ——— Detail Panel (floating overlay) ——— */
+.detail-panel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: 370px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+  display: flex;
+  flex-direction: column;
+  z-index: 60;
+  opacity: 0;
+  transform: translateX(20px) scale(0.97);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+}
+.detail-panel.open {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  pointer-events: auto;
+}
+.detail-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.detail-header-info { flex: 1; min-width: 0; }
+.detail-title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.detail-subtitle { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: 'SF Mono', 'Fira Code', monospace; }
+.detail-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 2px 6px;
+  line-height: 1;
+  border-radius: 4px;
+  transition: all 0.1s;
+  flex-shrink: 0;
+}
+.detail-close:hover { color: var(--text); background: var(--bg-overlay); }
+.detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  min-height: 0;
+}
+.detail-body::-webkit-scrollbar { width: 4px; }
+.detail-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.detail-section { margin-bottom: 14px; }
+.detail-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.detail-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.detail-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+.detail-exports {
+  list-style: none;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+}
+.detail-exports li {
+  padding: 3px 8px;
+  background: var(--bg);
+  border-radius: 4px;
+  margin-bottom: 3px;
+  color: var(--cyan);
+}
+.detail-code-block {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.detail-code-block .kw { color: #ff7b72; }
+.detail-code-block .fn { color: #d2a8ff; }
+.detail-code-block .tp { color: #79c0ff; }
+.detail-code-block .str { color: #a5d6ff; }
+.detail-code-block .cm { color: #484f58; font-style: italic; }
+.detail-code-block .const { color: #ffa657; }
+.detail-deps {
+  list-style: none;
+}
+.detail-dep {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.1s;
+}
+.detail-dep:hover { color: var(--accent); }
+.detail-dep .arrow { font-size: 10px; color: var(--text-dim); }
+.detail-comment-bar {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.detail-comment-btn {
+  width: 100%;
+  padding: 8px;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.detail-comment-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ——— Comment Modal ——— */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  width: 400px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.modal-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.modal-subtitle { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; font-family: monospace; }
+.modal textarea {
+  width: 100%;
+  height: 80px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  color: var(--text);
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+}
+.modal textarea:focus { border-color: var(--accent); }
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+.modal-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text);
+  transition: all 0.15s;
+}
+.modal-btn:hover { border-color: var(--text-muted); }
+.modal-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.modal-btn.primary:hover { opacity: 0.9; }
+
+/* ——— Prompt Bar ——— */
+.prompt-bar {
+  height: 0;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+  transition: height 0.25s ease;
+  display: flex;
+  align-items: stretch;
+}
+.prompt-bar.open { height: 100px; }
+.prompt-text {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow-y: auto;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  font-family: inherit;
+}
+.prompt-text::-webkit-scrollbar { width: 4px; }
+.prompt-text::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.prompt-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-left: 1px solid var(--border);
+}
+.copy-btn {
+  padding: 6px 14px;
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.copy-btn:hover { opacity: 0.85; }
+.toggle-prompt-btn {
+  padding: 6px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.toggle-prompt-btn:hover { border-color: var(--accent); }
+
+/* Node tooltip */
+.node-tooltip {
+  position: fixed;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text);
+  pointer-events: none;
+  z-index: 300;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  max-width: 250px;
+}
+.node-tooltip.visible { display: block; }
+.node-tooltip .tip-file { color: var(--text-muted); font-family: monospace; font-size: 10px; }
+
+/* Connection type legend items */
+.conn-legend-item { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.conn-legend-line { width: 20px; height: 2px; border-radius: 1px; }
+
+/* Flow animation */
+@keyframes flowDash {
+  to { stroke-dashoffset: -30; }
+}
+.flow-path {
+  animation: flowDash 1s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .sidebar { width: 220px; min-width: 220px; }
+  .detail-panel { width: 300px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="topbar-logo">claude-tutor <span>code map</span></div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-stats">
+    <span><b>27</b> files</span>
+    <span><b>42</b> connections</span>
+    <span><b>7</b> layers</span>
+  </div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-stats" id="techBadges">
+    <span style="color:var(--blue)">TypeScript</span>
+    <span style="color:var(--purple)">Claude SDK</span>
+    <span style="color:var(--green)">Zod</span>
+    <span style="color:var(--orange)">Commander.js</span>
+    <span style="color:var(--cyan)">Chalk</span>
+  </div>
+  <div class="topbar-search">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="searchInput" placeholder="Search files, functions, concepts…" autocomplete="off" />
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">View Presets</div>
+      <button class="preset-btn active" onclick="applyPreset('all')">Full System</button>
+      <button class="preset-btn" onclick="applyPreset('ai')">AI & Intelligence</button>
+      <button class="preset-btn" onclick="applyPreset('ui')">Terminal UI + Input</button>
+      <button class="preset-btn" onclick="applyPreset('core')">Core Loop</button>
+      <button class="preset-btn" onclick="applyPreset('data')">State & Data Flow</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Layers</div>
+      <div id="layerToggles"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Data Flow Overlays</div>
+      <label class="flow-toggle">
+        <input type="checkbox" id="flowInit" onchange="toggleFlow('init')" />
+        <div class="flow-indicator" style="background: var(--green);"></div>
+        Initialization Flow
+      </label>
+      <label class="flow-toggle">
+        <input type="checkbox" id="flowLoop" onchange="toggleFlow('loop')" />
+        <div class="flow-indicator" style="background: var(--orange);"></div>
+        Learning Loop Flow
+      </label>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Connection Types</div>
+      <div class="conn-legend-item"><div class="conn-legend-line" style="background:var(--text-dim)"></div><span style="font-size:12px">Import dependency</span></div>
+      <div class="conn-legend-item"><div class="conn-legend-line" style="background:var(--green)"></div><span style="font-size:12px;color:var(--green)">Init flow</span></div>
+      <div class="conn-legend-item"><div class="conn-legend-line" style="background:var(--orange)"></div><span style="font-size:12px;color:var(--orange)">Loop flow</span></div>
+    </div>
+
+    <div class="comments-section" id="commentsSection">
+      <div class="sidebar-section-title">Comments (<span id="commentCount">0</span>)</div>
+      <div class="no-comments" id="noComments">Click a node and add a comment to generate a prompt.</div>
+      <div id="commentList"></div>
+    </div>
+  </div>
+
+  <!-- Canvas + Detail -->
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="flex:1;display:flex;overflow:hidden;">
+      <div class="canvas-area" id="canvasArea">
+        <svg id="graph"></svg>
+
+        <!-- Minimap -->
+        <div class="minimap" id="minimap">
+          <svg id="minimapSvg" viewBox="0 0 160 110"></svg>
+        </div>
+
+        <!-- Zoom controls -->
+        <div class="zoom-controls">
+          <button class="zoom-btn" onclick="zoomIn()" title="Zoom in">+</button>
+          <div class="zoom-level" id="zoomLevel">100%</div>
+          <button class="zoom-btn" onclick="zoomOut()" title="Zoom out">−</button>
+          <button class="zoom-btn" onclick="zoomReset()" title="Reset view" style="font-size:12px">⟲</button>
+          <button class="zoom-btn" onclick="zoomFit()" title="Fit to view" style="font-size:11px">⊞</button>
+        </div>
+
+        <!-- Tooltip -->
+        <div class="node-tooltip" id="tooltip"></div>
+
+        <!-- Detail Panel (floating overlay inside canvas) -->
+        <div class="detail-panel" id="detailPanel">
+          <div class="detail-header">
+            <div class="detail-header-info">
+              <div class="detail-title" id="detailTitle"></div>
+              <div class="detail-subtitle" id="detailSubtitle"></div>
+            </div>
+            <button class="detail-close" onclick="closeDetail()">×</button>
+          </div>
+          <div class="detail-comment-bar">
+            <button class="detail-comment-btn" id="detailCommentBtn">+ Add Comment</button>
+          </div>
+          <div class="detail-body" id="detailBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt Bar -->
+    <div class="prompt-bar" id="promptBar">
+      <div class="prompt-text" id="promptText"></div>
+      <div class="prompt-actions">
+        <button class="copy-btn" onclick="copyPrompt()">Copy Prompt</button>
+        <button class="toggle-prompt-btn" onclick="togglePromptBar()">Hide</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comment Modal -->
+<div class="modal-overlay" id="commentModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-subtitle" id="modalSubtitle"></div>
+    <textarea id="modalTextarea" placeholder="Add feedback or notes about this component…"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeCommentModal()">Cancel</button>
+      <button class="modal-btn primary" onclick="saveComment()">Save Comment</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ——— DATA ———
+
+const LAYERS = {
+  cli:      { label: 'CLI & Entry',           color: '#58a6ff', nodeFill: '#1a3a5c', nodeBorder: '#2d5a8a' },
+  auth:     { label: 'Authentication & API',   color: '#bc8cff', nodeFill: '#2d1f4e', nodeBorder: '#5a3d8a' },
+  state:    { label: 'State & Data',           color: '#3fb950', nodeFill: '#1a3d2e', nodeBorder: '#2d6a4a' },
+  ai:       { label: 'AI & Intelligence',      color: '#f0883e', nodeFill: '#3d2a1a', nodeBorder: '#7a5535' },
+  ui:       { label: 'Terminal UI',            color: '#39d2c0', nodeFill: '#1a3d3d', nodeBorder: '#2d6a6a' },
+  core:     { label: 'Core Loop',             color: '#d29922', nodeFill: '#3d3a1a', nodeBorder: '#6a6530' },
+  managers: { label: 'Loop Managers',          color: '#f85149', nodeFill: '#3d1a1a', nodeBorder: '#7a3535' },
+};
+
+const NODES = [
+  // CLI & Entry
+  { id: 'index', label: 'index.ts', subtitle: 'src/index.ts', layer: 'cli', x: 120, y: 80,
+    desc: 'CLI entry point & command router using Commander.js. Commands: start, resume, login.',
+    exports: ['startCommand()', 'resumeCommand()'],
+    snippets: [
+      { title: 'CLI Setup', code: `<span class="kw">const</span> program = <span class="kw">new</span> <span class="tp">Command</span>()\n  .<span class="fn">name</span>(<span class="str">'claude-tutor'</span>)\n  .<span class="fn">description</span>(<span class="str">'AI-powered coding tutor'</span>)\n  .<span class="fn">version</span>(version);` },
+      { title: 'Start Command', code: `program\n  .<span class="fn">command</span>(<span class="str">'start'</span>)\n  .<span class="fn">description</span>(<span class="str">'Start or resume a project'</span>)\n  .<span class="fn">action</span>(<span class="kw">async</span> () =&gt; {\n    <span class="kw">await</span> <span class="fn">checkAndAutoUpdate</span>();\n    <span class="kw">const</span> existing = <span class="fn">loadExistingProject</span>();\n    <span class="cm">// resume or setup new…</span>\n  });` },
+    ] },
+  { id: 'preflight', label: 'preflight.ts', subtitle: 'src/preflight.ts', layer: 'cli', x: 280, y: 80,
+    desc: 'Environment validation — checks Node v18+, Git presence, directory safety, writability.',
+    exports: ['runPreflightChecks()', 'createProjectDirectory()', 'getProjectsBaseDir()'],
+    snippets: [
+      { title: 'Preflight Checks', code: `<span class="kw">export async function</span> <span class="fn">runPreflightChecks</span>(\n  <span class="const">cwd</span>: <span class="tp">string</span>\n): <span class="tp">Promise</span>&lt;<span class="tp">PreflightResult</span>&gt; {\n  <span class="cm">// Check Node >= 18</span>\n  <span class="cm">// Check git installed</span>\n  <span class="cm">// Validate directory safety</span>\n  <span class="cm">// Test write permissions</span>\n}` },
+    ] },
+  { id: 'update', label: 'update.ts', subtitle: 'src/update.ts', layer: 'cli', x: 440, y: 80,
+    desc: 'Auto-update mechanism via git. Checks origin/main, pulls, rebuilds.',
+    exports: ['checkAndAutoUpdate()', 'restartProcess()'],
+    snippets: [
+      { title: 'Auto Update', code: `<span class="kw">export async function</span> <span class="fn">checkAndAutoUpdate</span>(): <span class="tp">Promise</span>&lt;<span class="tp">void</span>&gt; {\n  <span class="kw">const</span> local = <span class="fn">execSync</span>(<span class="str">'git rev-parse HEAD'</span>);\n  <span class="kw">const</span> remote = <span class="fn">execSync</span>(<span class="str">'git rev-parse origin/main'</span>);\n  <span class="kw">if</span> (local !== remote) {\n    <span class="fn">execSync</span>(<span class="str">'git pull && npm run build'</span>);\n    <span class="fn">restartProcess</span>();\n  }\n}` },
+    ] },
+
+  // Auth & API
+  { id: 'auth', label: 'auth.ts', subtitle: 'src/auth.ts', layer: 'auth', x: 120, y: 200,
+    desc: 'User authentication, API communication, backend integration with token-based auth.',
+    exports: ['loginCommand()', 'callAPI()', 'callInitEndpoint()', 'callResumeEndpoint()', 'callProjectCompleteEndpoint()'],
+    snippets: [
+      { title: 'API Wrapper', code: `<span class="kw">export async function</span> <span class="fn">callAPI</span>&lt;<span class="tp">T</span>&gt;(\n  <span class="const">endpoint</span>: <span class="tp">string</span>,\n  <span class="const">body</span>: <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">unknown</span>&gt;\n): <span class="tp">Promise</span>&lt;<span class="tp">T</span> | <span class="tp">null</span>&gt; {\n  <span class="kw">const</span> config = <span class="fn">loadConfig</span>();\n  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(\n    <span class="str">\`\${API_HOSTNAME}\${endpoint}\`</span>,\n    { headers: { Authorization: config.token } }\n  );\n}` },
+      { title: 'Login Flow', code: `<span class="kw">export async function</span> <span class="fn">loginCommand</span>(): <span class="tp">Promise</span>&lt;<span class="tp">void</span>&gt; {\n  <span class="kw">const</span> rl = <span class="fn">createInterface</span>({ input, output });\n  <span class="kw">const</span> email = <span class="kw">await</span> <span class="fn">question</span>(<span class="str">'Email: '</span>);\n  <span class="kw">const</span> password = <span class="kw">await</span> <span class="fn">question</span>(<span class="str">'Password: '</span>);\n  <span class="cm">// Authenticate and save token</span>\n}` },
+    ] },
+  { id: 'logging', label: 'logging.ts', subtitle: 'src/logging.ts', layer: 'auth', x: 320, y: 200,
+    desc: 'Backend interaction logging and debug logging. Fail-silent, session-aware.',
+    exports: ['logInteraction()', 'debugLog()'],
+    snippets: [
+      { title: 'Interaction Logger', code: `<span class="kw">export async function</span> <span class="fn">logInteraction</span>(\n  <span class="const">type</span>: <span class="str">'initial_question'</span> | <span class="str">'llm_response'</span>\n    | <span class="str">'segment_completed'</span> | ...,\n  <span class="const">metadata</span>?: <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">unknown</span>&gt;\n): <span class="tp">Promise</span>&lt;<span class="tp">void</span>&gt; {\n  <span class="cm">// Fail-silent: won't interrupt user</span>\n  <span class="kw">try</span> { <span class="kw">await</span> <span class="fn">callAPI</span>(<span class="str">'/log'</span>, { type, metadata }); }\n  <span class="kw">catch</span> {} <span class="cm">// swallow errors</span>\n}` },
+    ] },
+
+  // State & Data
+  { id: 'storage', label: 'storage.ts', subtitle: 'src/storage.ts', layer: 'state', x: 120, y: 320,
+    desc: 'All state persistence — config, curriculum, global state, per-segment progress. JSON files with Zod validation.',
+    exports: ['loadConfig()', 'saveConfig()', 'loadCurriculum()', 'saveCurriculum()', 'loadState()', 'saveState()', 'loadProgress()', 'saveProgress()'],
+    snippets: [
+      { title: 'State Persistence', code: `<span class="cm">// ~/.claude-tutor-config.json</span>\n<span class="kw">export function</span> <span class="fn">loadConfig</span>(): <span class="tp">Config</span>\n<span class="kw">export function</span> <span class="fn">saveConfig</span>(<span class="const">c</span>: <span class="tp">Config</span>): <span class="tp">void</span>\n\n<span class="cm">// ~/.claude-tutor/state.json</span>\n<span class="kw">export function</span> <span class="fn">loadState</span>(): <span class="tp">State</span>\n<span class="kw">export function</span> <span class="fn">saveState</span>(<span class="const">s</span>: <span class="tp">State</span>): <span class="tp">void</span>\n\n<span class="cm">// {projectDir}/.tutor-progress.json</span>\n<span class="kw">export function</span> <span class="fn">loadProgress</span>(<span class="const">dir</span>: <span class="tp">string</span>): <span class="tp">Progress</span>\n<span class="kw">export function</span> <span class="fn">saveProgress</span>(<span class="const">dir</span>, <span class="const">p</span>): <span class="tp">void</span>` },
+    ] },
+  { id: 'types', label: 'types.ts', subtitle: 'src/types.ts', layer: 'state', x: 340, y: 320,
+    desc: 'Zod schemas & TypeScript types: Config, LearnerProfile, Segments, Curriculum, State, Progress. TutorMode enum.',
+    exports: ['ConfigSchema', 'CurriculumSchema', 'StateSchema', 'ProgressSchema', 'TutorMode', 'BuildSegmentSchema'],
+    snippets: [
+      { title: 'Core Schemas', code: `<span class="kw">export const</span> <span class="const">StateSchema</span> = z.<span class="fn">object</span>({\n  currentProjectName: z.<span class="fn">string</span>(),\n  currentSegmentIndex: z.<span class="fn">number</span>(),\n  workingDirectory: z.<span class="fn">string</span>(),\n  curriculumId: z.<span class="fn">string</span>(),\n});\n\n<span class="kw">export const</span> <span class="const">TutorMode</span> =\n  z.<span class="fn">enum</span>([<span class="str">'tutor'</span>, <span class="str">'block'</span>, <span class="str">'discuss'</span>]);` },
+      { title: 'Segment Schema', code: `<span class="kw">export const</span> <span class="const">BuildSegmentSchema</span> = z.<span class="fn">object</span>({\n  type: z.<span class="fn">literal</span>(<span class="str">'build'</span>),\n  id: z.<span class="fn">string</span>(),\n  title: z.<span class="fn">string</span>(),\n  goldenCode: z.<span class="fn">string</span>(),\n  targetFile: z.<span class="fn">string</span>(),\n  engineeringFocus: z.<span class="fn">string</span>(),\n  checkpoints: z.<span class="fn">array</span>(CheckpointSchema),\n});` },
+    ] },
+
+  // AI & Intelligence
+  { id: 'agent', label: 'agent.ts', subtitle: 'src/agent.ts', layer: 'ai', x: 580, y: 160,
+    desc: 'Claude SDK integration with streaming and tool handling. Provides 5 tools to Claude, manages message history.',
+    exports: ['runAgentTurn()', 'createInitialMessages()', 'pruneContextForNewSegment()', 'TOOL_DEFINITIONS'],
+    snippets: [
+      { title: 'Agent Turn (streaming)', code: `<span class="kw">export async function</span> <span class="fn">runAgentTurn</span>(\n  <span class="const">messages</span>: <span class="tp">MessageParam</span>[],\n  <span class="const">systemPrompt</span>: <span class="tp">string</span>,\n  <span class="const">callbacks</span>: {\n    <span class="fn">onText</span>: (<span class="const">t</span>: <span class="tp">string</span>) =&gt; <span class="tp">void</span>,\n    <span class="fn">onToolUse</span>: (<span class="const">name</span>, <span class="const">status</span>) =&gt; <span class="tp">void</span>,\n    <span class="fn">onSegmentComplete</span>: (<span class="const">s</span>) =&gt; <span class="tp">void</span>,\n  }\n): <span class="tp">Promise</span>&lt;<span class="tp">MessageParam</span>[]&gt;` },
+      { title: 'Tool Definitions', code: `<span class="kw">const</span> <span class="const">TOOL_DEFINITIONS</span> = [\n  { name: <span class="str">'verify_syntax'</span>,\n    description: <span class="str">'Check TS/JS syntax'</span> },\n  { name: <span class="str">'conduct_code_review'</span>,\n    description: <span class="str">'Assess code quality'</span> },\n  { name: <span class="str">'run_git_command'</span>,\n    description: <span class="str">'Execute git ops'</span> },\n  { name: <span class="str">'mark_segment_complete'</span> },\n  { name: <span class="str">'read_file'</span> },\n];` },
+    ] },
+  { id: 'curriculum', label: 'curriculum.ts', subtitle: 'src/curriculum.ts', layer: 'ai', x: 740, y: 100,
+    desc: 'Claude-powered dynamic curriculum generation. Creates 4-6 segments (Build/Refactor) based on learner profile.',
+    exports: ['createCurriculum()', 'getCurrentSegment()', 'isCurriculumComplete()'],
+    snippets: [
+      { title: 'Curriculum Generation', code: `<span class="kw">export async function</span> <span class="fn">createCurriculum</span>(\n  <span class="const">projectName</span>: <span class="tp">string</span>,\n  <span class="const">projectGoal</span>: <span class="tp">string</span>,\n  <span class="const">profile</span>: <span class="tp">LearnerProfile</span>,\n  <span class="const">workingDir</span>: <span class="tp">string</span>\n): <span class="tp">Promise</span>&lt;<span class="tp">Curriculum</span>&gt; {\n  <span class="cm">// Uses Claude to generate 4-6 segments</span>\n  <span class="cm">// Mix of Build + Refactor types</span>\n  <span class="cm">// Tailored to learner experience</span>\n}` },
+    ] },
+  { id: 'sysprompt', label: 'system-prompt.ts', subtitle: 'src/system-prompt.ts', layer: 'ai', x: 740, y: 200,
+    desc: 'Context-aware system prompt builder. Injects project goal, segment details, golden code instructions, teaching style.',
+    exports: ['buildSystemPrompt()'],
+    snippets: [
+      { title: 'System Prompt Builder', code: `<span class="kw">export function</span> <span class="fn">buildSystemPrompt</span>(\n  <span class="const">ctx</span>: {\n    projectGoal: <span class="tp">string</span>;\n    segment: <span class="tp">Segment</span>;\n    prevSummary?: <span class="tp">string</span>;\n    progress: <span class="tp">Progress</span>;\n  }\n): <span class="tp">string</span> {\n  <span class="cm">// Injects: project goal, segment details,</span>\n  <span class="cm">// golden code rules, teaching style,</span>\n  <span class="cm">// tool-use sequence guidelines</span>\n}` },
+    ] },
+  { id: 'questions', label: 'questions.ts', subtitle: 'src/questions.ts', layer: 'ai', x: 580, y: 260,
+    desc: 'Claude-driven personalized questionnaire. Generates profiling questions dynamically.',
+    exports: ['askClarifyingQuestions()', 'parseProfileFromResponse()'],
+    snippets: [
+      { title: 'Dynamic Questions', code: `<span class="kw">export async function</span> <span class="fn">askClarifyingQuestions</span>(\n  <span class="const">ctx</span>: <span class="tp">QuestionContext</span>\n): <span class="tp">Promise</span>&lt;<span class="tp">LearnerProfile</span>&gt; {\n  <span class="cm">// Uses Claude to generate profiling Qs</span>\n  <span class="kw">const</span> questions = <span class="kw">await</span> <span class="fn">query</span>(claude, {\n    prompt: <span class="str">"Generate 3-5 questions…"</span>,\n  });\n  <span class="cm">// Collects answers via wizard</span>\n  <span class="kw">return</span> <span class="fn">parseProfileFromResponse</span>(answers);\n}` },
+    ] },
+  { id: 'goldencode', label: 'golden-code.ts', subtitle: 'src/golden-code.ts', layer: 'ai', x: 740, y: 300,
+    desc: 'Parse golden code into typeable steps: commands, heredocs, code-blocks. Auto-generates helpful comments.',
+    exports: ['parseGoldenCode()', 'goldenCodeToExtractedCode()', 'getGoldenCodeStepCount()'],
+    snippets: [
+      { title: 'Golden Code Parser', code: `<span class="kw">type</span> <span class="tp">GoldenCodeStep</span> = {\n  type: <span class="str">'command'</span> | <span class="str">'heredoc'</span> | <span class="str">'code-block'</span>;\n  code: <span class="tp">string</span>;\n  comment: <span class="tp">string</span>;  <span class="cm">// auto-generated</span>\n  lineNumber: <span class="tp">number</span>;\n};\n\n<span class="kw">export function</span> <span class="fn">parseGoldenCode</span>(\n  <span class="const">raw</span>: <span class="tp">string</span>\n): <span class="tp">ParsedGoldenCode</span> {\n  <span class="cm">// Splits into command, heredoc, code steps</span>\n  <span class="cm">// Detects: mkdir, git, npm, cat > EOF…</span>\n}` },
+    ] },
+  { id: 'tools', label: 'tools.ts', subtitle: 'src/tools.ts', layer: 'ai', x: 580, y: 370,
+    desc: 'Tool implementations for Claude: syntax check (tsc), code review, git commands, segment completion, file read.',
+    exports: ['verifySyntax()', 'conductCodeReview()', 'executeGitCommand()', 'markComplete()'],
+    snippets: [
+      { title: 'Verify Syntax', code: `<span class="kw">export async function</span> <span class="fn">verifySyntax</span>(\n  <span class="const">filePath</span>: <span class="tp">string</span>,\n  <span class="const">cwd</span>: <span class="tp">string</span>\n): <span class="tp">Promise</span>&lt;<span class="tp">ToolResult</span>&gt; {\n  <span class="kw">const</span> ext = path.<span class="fn">extname</span>(filePath);\n  <span class="kw">if</span> (ext === <span class="str">'.ts'</span>)\n    <span class="fn">execSync</span>(<span class="str">\`tsc --noEmit \${filePath}\`</span>);\n  <span class="kw">else</span>\n    <span class="fn">execSync</span>(<span class="str">\`node --check \${filePath}\`</span>);\n}` },
+      { title: 'Security: Git Commands', code: `<span class="kw">export function</span> <span class="fn">executeGitCommand</span>(\n  <span class="const">cmd</span>: <span class="tp">string</span>, <span class="const">cwd</span>: <span class="tp">string</span>\n): <span class="tp">ToolResult</span> {\n  <span class="cm">// Only "git " prefix allowed</span>\n  <span class="cm">// Blocks: ; & | \` $ (injection)</span>\n  <span class="kw">if</span> (!cmd.<span class="fn">startsWith</span>(<span class="str">'git '</span>))\n    <span class="kw">throw</span> <span class="kw">new</span> <span class="tp">Error</span>(<span class="str">'Invalid command'</span>);\n}` },
+    ] },
+
+  // Terminal UI
+  { id: 'display', label: 'display.ts', subtitle: 'src/display.ts', layer: 'ui', x: 120, y: 460,
+    desc: 'Rich terminal rendering — turtle logo, spinners, word-wrap, colors. Non-TTY fallback support.',
+    exports: ['displayWelcome()', 'displaySegmentHeader()', 'displayTutorText()', 'startLoading()', 'stopLoading()', 'colors'],
+    snippets: [
+      { title: 'Display Helpers', code: `<span class="kw">export function</span> <span class="fn">displayWelcome</span>(): <span class="tp">void</span>\n<span class="kw">export function</span> <span class="fn">displaySegmentHeader</span>(\n  <span class="const">seg</span>: <span class="tp">Segment</span>, <span class="const">idx</span>: <span class="tp">number</span>\n): <span class="tp">void</span>\n<span class="kw">export function</span> <span class="fn">startLoading</span>(\n  <span class="const">msg</span>?: <span class="tp">string</span>\n): <span class="tp">void</span>  <span class="cm">// animated spinner</span>\n<span class="kw">export function</span> <span class="fn">stopLoading</span>(): <span class="tp">void</span>` },
+      { title: 'Color Palette', code: `<span class="kw">export const</span> <span class="const">colors</span> = {\n  green:  chalk.<span class="fn">hex</span>(<span class="str">'#3fb950'</span>),\n  red:    chalk.<span class="fn">hex</span>(<span class="str">'#f85149'</span>),\n  orange: chalk.<span class="fn">hex</span>(<span class="str">'#f0883e'</span>),\n  purple: chalk.<span class="fn">hex</span>(<span class="str">'#bc8cff'</span>),\n};` },
+    ] },
+  { id: 'input', label: 'input.ts', subtitle: 'src/input.ts', layer: 'ui', x: 320, y: 460,
+    desc: 'Multi-modal input — Typer Shark (character-by-character), multi-line heredoc, free-form, wizards.',
+    exports: ['createTyperSharkInput()', 'createMultiLineTyperSharkInput()', 'createFreeFormInput()', 'createMultiQuestionWizard()'],
+    snippets: [
+      { title: 'Typer Shark Input', code: `<span class="kw">export async function</span> <span class="fn">createTyperSharkInput</span>(\n  <span class="const">expectedCode</span>: <span class="tp">ExtractedCode</span>\n): <span class="tp">Promise</span>&lt;<span class="tp">string</span>&gt; {\n  <span class="cm">// Raw mode: character-by-character</span>\n  <span class="cm">// Validates each keystroke matches</span>\n  <span class="cm">// expected golden code</span>\n  <span class="cm">// Shift+Tab → switch to discuss mode</span>\n}` },
+      { title: 'Wizard Questions', code: `<span class="kw">export async function</span> <span class="fn">createMultiQuestionWizard</span>(\n  <span class="const">questions</span>: <span class="tp">WizardQuestion</span>[]\n): <span class="tp">Promise</span>&lt;<span class="tp">string</span>[]&gt; {\n  <span class="cm">// Arrow key navigation</span>\n  <span class="cm">// Enter to select</span>\n  <span class="cm">// Returns array of answers</span>\n}` },
+    ] },
+  { id: 'mode', label: 'mode.ts', subtitle: 'src/mode.ts', layer: 'ui', x: 500, y: 460,
+    desc: 'Three interaction modes — Tutor (line-by-line), Block (free-form), Discuss (Q&A). Module-level singleton.',
+    exports: ['getMode()', 'setMode()', 'cycleMode()', 'isTutorMode()', 'isBlockMode()', 'isDiscussMode()'],
+    snippets: [
+      { title: 'Mode Management', code: `<span class="kw">let</span> currentMode: <span class="tp">TutorMode</span> = <span class="str">'tutor'</span>;\n\n<span class="kw">export function</span> <span class="fn">getMode</span>(): <span class="tp">TutorMode</span>\n<span class="kw">export function</span> <span class="fn">setMode</span>(<span class="const">m</span>: <span class="tp">TutorMode</span>): <span class="tp">void</span>\n<span class="kw">export function</span> <span class="fn">cycleMode</span>(): <span class="tp">TutorMode</span> {\n  <span class="cm">// tutor → block → discuss → tutor</span>\n}\n<span class="kw">export const</span> <span class="const">TUTOR_MODES</span> = [\n  { value: <span class="str">'tutor'</span>,   label: <span class="str">'Line-by-line'</span> },\n  { value: <span class="str">'block'</span>,   label: <span class="str">'Free-form'</span> },\n  { value: <span class="str">'discuss'</span>, label: <span class="str">'Q&amp;A'</span> },\n];` },
+    ] },
+
+  // Core Loop & Orchestration
+  { id: 'tutorloop', label: 'tutor-loop.ts', subtitle: 'src/tutor-loop.ts', layer: 'core', x: 320, y: 580,
+    desc: 'Main learning loop orchestrator. Manages input→agent→display→progress cycle. SIGINT handling for graceful exit.',
+    exports: ['runTutorLoop()'],
+    snippets: [
+      { title: 'Main Loop', code: `<span class="kw">export async function</span> <span class="fn">runTutorLoop</span>(\n  <span class="const">curriculum</span>: <span class="tp">Curriculum</span>,\n  <span class="const">startIdx</span>: <span class="tp">number</span>\n): <span class="tp">Promise</span>&lt;<span class="tp">void</span>&gt; {\n  <span class="kw">const</span> gcm = <span class="kw">new</span> <span class="tp">GoldenCodeManager</span>(…);\n  <span class="kw">const</span> input = <span class="kw">new</span> <span class="tp">InputHandler</span>(…);\n  <span class="kw">const</span> agent = <span class="kw">new</span> <span class="tp">AgentCaller</span>(…);\n\n  <span class="kw">while</span> (!done) {\n    <span class="kw">const</span> userInput = <span class="kw">await</span> input.<span class="fn">getInput</span>();\n    <span class="kw">const</span> result = <span class="kw">await</span> agent.<span class="fn">callAgent</span>(…);\n    <span class="fn">saveProgress</span>(…);\n  }\n}` },
+    ] },
+  { id: 'lifecycle', label: 'project-lifecycle.ts', subtitle: 'src/project-lifecycle.ts', layer: 'core', x: 120, y: 580,
+    desc: 'Project setup, loading, and resumption flows. Bridges questions→curriculum→git→tutor-loop.',
+    exports: ['setupNewProject()', 'loadExistingProject()', 'resumeExistingProject()'],
+    snippets: [
+      { title: 'New Project Setup', code: `<span class="kw">export async function</span> <span class="fn">setupNewProject</span>(): <span class="tp">Promise</span>&lt;<span class="tp">void</span>&gt; {\n  <span class="kw">const</span> profile = <span class="kw">await</span> <span class="fn">askClarifyingQuestions</span>(…);\n  <span class="kw">const</span> curriculum = <span class="kw">await</span> <span class="fn">createCurriculum</span>(\n    name, goal, profile, dir\n  );\n  <span class="kw">await</span> <span class="fn">initGitRepo</span>(dir);\n  <span class="fn">saveState</span>({ curriculumId: curriculum.id });\n  <span class="kw">await</span> <span class="fn">runTutorLoop</span>(curriculum, 0);\n}` },
+    ] },
+  { id: 'git', label: 'git.ts', subtitle: 'src/git.ts', layer: 'core', x: 520, y: 580,
+    desc: 'Git repository management — init with .gitignore, safe command execution with injection prevention.',
+    exports: ['initGitRepo()', 'runGitCommand()'],
+    snippets: [
+      { title: 'Git Init', code: `<span class="kw">export async function</span> <span class="fn">initGitRepo</span>(\n  <span class="const">dir</span>: <span class="tp">string</span>\n): <span class="tp">Promise</span>&lt;<span class="tp">void</span>&gt; {\n  <span class="fn">execSync</span>(<span class="str">'git init'</span>, { cwd: dir });\n  <span class="fn">writeFileSync</span>(\n    <span class="str">'.gitignore'</span>,\n    <span class="str">'node_modules\\ndist\\n.env\\n.DS_Store'</span>\n  );\n  <span class="fn">execSync</span>(<span class="str">'git add -A && git commit -m "init"'</span>);\n}` },
+    ] },
+  { id: 'utils', label: 'utils.ts', subtitle: 'src/utils.ts', layer: 'core', x: 680, y: 580,
+    desc: 'Utility functions used across the codebase.',
+    exports: ['various utilities'],
+    snippets: [] },
+
+  // Loop Managers
+  { id: 'gcm', label: 'GoldenCodeManager', subtitle: 'src/tutor-loop/GoldenCodeManager.ts', layer: 'managers', x: 120, y: 720,
+    desc: 'Golden code step progression manager. Tracks current step, prevents duplicates, persists progress.',
+    exports: ['loadCurrentStep()', 'advance()', 'getCurrentCode()', 'getCurrentIndex()'],
+    snippets: [
+      { title: 'Step Progression', code: `<span class="kw">class</span> <span class="tp">GoldenCodeManager</span> {\n  <span class="kw">private</span> currentIndex: <span class="tp">number</span>;\n  <span class="kw">private</span> steps: <span class="tp">GoldenCodeStep</span>[];\n\n  <span class="fn">loadCurrentStep</span>(): <span class="tp">ExtractedCode</span> | <span class="tp">null</span>\n  <span class="fn">advance</span>(): <span class="tp">void</span> {\n    <span class="kw">this</span>.currentIndex++;\n    <span class="fn">saveProgress</span>({ currentGoldenStep: <span class="kw">this</span>.currentIndex });\n  }\n  <span class="fn">hasMoreSteps</span>(): <span class="tp">boolean</span>\n}` },
+    ] },
+  { id: 'cmdexec', label: 'CommandExecutor', subtitle: 'src/tutor-loop/CommandExecutor.ts', layer: 'managers', x: 280, y: 720,
+    desc: 'Shell command execution and heredoc parsing state machine. Validates commands, handles multi-line.',
+    exports: ['isShellCommand()', 'executeCommand()', 'startsHeredoc()', 'finishHeredoc()'],
+    snippets: [
+      { title: 'Heredoc State Machine', code: `<span class="kw">class</span> <span class="tp">CommandExecutor</span> {\n  <span class="kw">private</span> heredocActive = <span class="kw">false</span>;\n  <span class="kw">private</span> heredocLines: <span class="tp">string</span>[] = [];\n  <span class="kw">private</span> heredocFile: <span class="tp">string</span> = <span class="str">''</span>;\n\n  <span class="fn">startsHeredoc</span>(<span class="const">line</span>): <span class="tp">boolean</span> {\n    <span class="cm">// Detect: cat > file << 'EOF'</span>\n    <span class="kw">return</span> /&lt;&lt;\\s*'?EOF/.test(line);\n  }\n  <span class="fn">finishHeredoc</span>(): <span class="tp">void</span> {\n    <span class="fn">writeFileSync</span>(<span class="kw">this</span>.heredocFile,\n      <span class="kw">this</span>.heredocLines.<span class="fn">join</span>(<span class="str">'\\n'</span>));\n  }\n}` },
+    ] },
+  { id: 'inputhandler', label: 'InputHandler', subtitle: 'src/tutor-loop/InputHandler.ts', layer: 'managers', x: 440, y: 720,
+    desc: 'Mode-aware input acquisition. Routes to Typer Shark, free-form, or discuss based on current mode.',
+    exports: ['getInput()', 'setSegment()'],
+    snippets: [
+      { title: 'Mode Routing', code: `<span class="kw">class</span> <span class="tp">InputHandler</span> {\n  <span class="kw">async</span> <span class="fn">getInput</span>(): <span class="tp">Promise</span>&lt;<span class="tp">string</span>&gt; {\n    <span class="kw">if</span> (<span class="fn">isDiscussMode</span>())\n      <span class="kw">return</span> <span class="fn">createFreeFormInput</span>();\n    <span class="kw">if</span> (<span class="fn">isBlockMode</span>())\n      <span class="kw">return</span> <span class="fn">createFreeFormInput</span>({ ref });\n    <span class="cm">// Tutor mode: character validation</span>\n    <span class="kw">return</span> <span class="fn">createTyperSharkInput</span>(\n      <span class="kw">this</span>.gcm.<span class="fn">getCurrentCode</span>()\n    );\n  }\n}` },
+    ] },
+  { id: 'agentcaller', label: 'agent-caller', subtitle: 'src/tutor-loop/agent-caller.ts', layer: 'managers', x: 600, y: 720,
+    desc: 'Agent call orchestration with queuing to prevent race conditions. Manages loading state and SIGINT.',
+    exports: ['callAgent()', 'installSigintHandler()'],
+    snippets: [
+      { title: 'Call Queuing', code: `<span class="kw">class</span> <span class="tp">AgentCaller</span> {\n  <span class="kw">private</span> queue: <span class="tp">Promise</span>&lt;<span class="tp">void</span>&gt; = <span class="tp">Promise</span>.<span class="fn">resolve</span>();\n\n  <span class="kw">async</span> <span class="fn">callAgent</span>(\n    <span class="const">ctx</span>: <span class="tp">AgentContext</span>\n  ): <span class="tp">Promise</span>&lt;<span class="tp">AgentResult</span>&gt; {\n    <span class="cm">// Queue prevents concurrent calls</span>\n    <span class="kw">this</span>.queue = <span class="kw">this</span>.queue.<span class="fn">then</span>(\n      () =&gt; <span class="fn">runAgentTurn</span>(…)\n    );\n    <span class="fn">startLoading</span>(<span class="str">'Thinking…'</span>);\n  }\n}` },
+    ] },
+  { id: 'seglifecycle', label: 'SegmentLifecycle', subtitle: 'src/tutor-loop/SegmentLifecycleManager.ts', layer: 'managers', x: 760, y: 720,
+    desc: 'Segment completion handling — marks done, advances state, notifies backend, prunes context for next segment.',
+    exports: ['handleSegmentCompletion()'],
+    snippets: [
+      { title: 'Completion Handler', code: `<span class="kw">class</span> <span class="tp">SegmentLifecycleManager</span> {\n  <span class="kw">async</span> <span class="fn">handleSegmentCompletion</span>(\n    <span class="const">params</span>: <span class="tp">HandleSegmentCompletionParams</span>\n  ): <span class="tp">Promise</span>&lt;<span class="tp">SegmentCompletionResult</span>&gt; {\n    <span class="fn">saveProgress</span>({ completed: <span class="kw">true</span> });\n    <span class="kw">await</span> <span class="fn">logInteraction</span>(<span class="str">'segment_completed'</span>);\n    state.currentSegmentIndex++;\n    <span class="fn">pruneContextForNewSegment</span>(msgs);\n  }\n}` },
+    ] },
+  { id: 'scrollview', label: 'ScrollableViewer', subtitle: 'src/tutor-loop/ScrollableViewer.ts', layer: 'managers', x: 900, y: 720,
+    desc: 'Viewport management for code display. Terminal-size-aware scrolling with chrome accounting.',
+    exports: ['scrollUp()', 'scrollDown()', 'updateViewportHeight()'],
+    snippets: [
+      { title: 'Viewport', code: `<span class="kw">class</span> <span class="tp">ScrollableViewer</span> {\n  <span class="kw">private</span> offset = 0;\n  <span class="kw">private</span> viewportHeight: <span class="tp">number</span>;\n\n  <span class="fn">updateViewportHeight</span>() {\n    <span class="kw">const</span> { rows } = <span class="fn">terminalSize</span>();\n    <span class="kw">this</span>.viewportHeight = rows - 6;\n    <span class="cm">// 6 lines reserved for UI chrome</span>\n  }\n  <span class="fn">scrollDown</span>() {\n    <span class="kw">this</span>.offset = Math.<span class="fn">min</span>(\n      <span class="kw">this</span>.offset + 1,\n      <span class="kw">this</span>.totalLines - <span class="kw">this</span>.viewportHeight\n    );\n  }\n}` },
+    ] },
+  // Extra
+  { id: 'important', label: 'important.ts', subtitle: 'src/important.ts', layer: 'cli', x: 520, y: 50,
+    desc: 'Startup metrics analysis (sample data).',
+    exports: ['(sample metrics)'],
+    snippets: [] },
+];
+
+const CONNECTIONS = [
+  // index.ts imports
+  { from: 'index', to: 'storage',   type: 'dep' },
+  { from: 'index', to: 'lifecycle', type: 'dep' },
+  { from: 'index', to: 'tutorloop', type: 'dep' },
+  { from: 'index', to: 'auth',      type: 'dep' },
+  { from: 'index', to: 'update',    type: 'dep' },
+  // tutor-loop.ts imports
+  { from: 'tutorloop', to: 'preflight', type: 'dep' },
+  { from: 'tutorloop', to: 'storage',   type: 'dep' },
+  { from: 'tutorloop', to: 'display',   type: 'dep' },
+  { from: 'tutorloop', to: 'agent',     type: 'dep' },
+  { from: 'tutorloop', to: 'mode',      type: 'dep' },
+  { from: 'tutorloop', to: 'goldencode',type: 'dep' },
+  { from: 'tutorloop', to: 'gcm',       type: 'dep' },
+  { from: 'tutorloop', to: 'cmdexec',   type: 'dep' },
+  { from: 'tutorloop', to: 'inputhandler', type: 'dep' },
+  { from: 'tutorloop', to: 'agentcaller',  type: 'dep' },
+  { from: 'tutorloop', to: 'seglifecycle', type: 'dep' },
+  { from: 'tutorloop', to: 'scrollview',   type: 'dep' },
+  // project-lifecycle.ts imports
+  { from: 'lifecycle', to: 'questions',  type: 'dep' },
+  { from: 'lifecycle', to: 'curriculum', type: 'dep' },
+  { from: 'lifecycle', to: 'storage',    type: 'dep' },
+  { from: 'lifecycle', to: 'tutorloop',  type: 'dep' },
+  { from: 'lifecycle', to: 'auth',       type: 'dep' },
+  { from: 'lifecycle', to: 'git',        type: 'dep' },
+  { from: 'lifecycle', to: 'preflight',  type: 'dep' },
+  { from: 'lifecycle', to: 'logging',    type: 'dep' },
+  // agent.ts imports
+  { from: 'agent', to: 'tools',      type: 'dep' },
+  { from: 'agent', to: 'sysprompt',  type: 'dep' },
+  { from: 'agent', to: 'display',    type: 'dep' },
+  { from: 'agent', to: 'types',      type: 'dep' },
+  { from: 'agent', to: 'storage',    type: 'dep' },
+  // curriculum.ts imports
+  { from: 'curriculum', to: 'storage', type: 'dep' },
+  { from: 'curriculum', to: 'types',   type: 'dep' },
+  { from: 'curriculum', to: 'display', type: 'dep' },
+  // questions.ts imports
+  { from: 'questions', to: 'input',   type: 'dep' },
+  { from: 'questions', to: 'display', type: 'dep' },
+  // input.ts imports
+  { from: 'input', to: 'display', type: 'dep' },
+  { from: 'input', to: 'mode',    type: 'dep' },
+  // tools.ts imports
+  { from: 'tools', to: 'git',     type: 'dep' },
+  { from: 'tools', to: 'storage', type: 'dep' },
+  // golden-code.ts imports
+  { from: 'goldencode', to: 'types', type: 'dep' },
+  // storage.ts imports
+  { from: 'storage', to: 'types', type: 'dep' },
+  // auth.ts imports
+  { from: 'auth', to: 'storage', type: 'dep' },
+  { from: 'auth', to: 'display', type: 'dep' },
+  // logging.ts imports
+  { from: 'logging', to: 'auth', type: 'dep' },
+];
+
+const FLOW_INIT = ['index', 'update', 'storage', 'preflight', 'lifecycle', 'questions', 'curriculum', 'git', 'tutorloop'];
+const FLOW_LOOP = ['inputhandler', 'cmdexec', 'agentcaller', 'agent', 'display', 'storage', 'seglifecycle', 'tutorloop'];
+
+// ——— STATE ———
+const state = {
+  layers: {},
+  selectedNode: null,
+  hoveredNode: null,
+  comments: [],
+  showFlowInit: false,
+  showFlowLoop: false,
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+  dragging: null,
+  dragOffsetX: 0,
+  dragOffsetY: 0,
+  panning: false,
+  panStartX: 0,
+  panStartY: 0,
+  promptVisible: false,
+};
+
+// Initialize layer visibility
+Object.keys(LAYERS).forEach(k => state.layers[k] = true);
+
+// ——— RENDERING ———
+const svgNS = 'http://www.w3.org/2000/svg';
+const graphEl = document.getElementById('graph');
+const canvasArea = document.getElementById('canvasArea');
+let graphGroup;
+
+function initGraph() {
+  // Defs for markers and filters
+  const defs = document.createElementNS(svgNS, 'defs');
+
+  // Arrowhead markers
+  ['dep', 'init', 'loop'].forEach(type => {
+    const colors = { dep: '#484f58', init: '#3fb950', loop: '#f0883e' };
+    const marker = document.createElementNS(svgNS, 'marker');
+    marker.setAttribute('id', `arrow-${type}`);
+    marker.setAttribute('markerWidth', '8');
+    marker.setAttribute('markerHeight', '6');
+    marker.setAttribute('refX', '7');
+    marker.setAttribute('refY', '3');
+    marker.setAttribute('orient', 'auto');
+    const poly = document.createElementNS(svgNS, 'polygon');
+    poly.setAttribute('points', '0 0, 8 3, 0 6');
+    poly.setAttribute('fill', colors[type]);
+    marker.appendChild(poly);
+    defs.appendChild(marker);
+  });
+
+  // Highlighted arrow
+  const markerH = document.createElementNS(svgNS, 'marker');
+  markerH.setAttribute('id', 'arrow-highlight');
+  markerH.setAttribute('markerWidth', '8');
+  markerH.setAttribute('markerHeight', '6');
+  markerH.setAttribute('refX', '7');
+  markerH.setAttribute('refY', '3');
+  markerH.setAttribute('orient', 'auto');
+  const polyH = document.createElementNS(svgNS, 'polygon');
+  polyH.setAttribute('points', '0 0, 8 3, 0 6');
+  polyH.setAttribute('fill', '#58a6ff');
+  markerH.appendChild(polyH);
+  defs.appendChild(markerH);
+
+  // Glow filter
+  const filter = document.createElementNS(svgNS, 'filter');
+  filter.setAttribute('id', 'glow');
+  filter.setAttribute('x', '-20%');
+  filter.setAttribute('y', '-20%');
+  filter.setAttribute('width', '140%');
+  filter.setAttribute('height', '140%');
+  const blur = document.createElementNS(svgNS, 'feGaussianBlur');
+  blur.setAttribute('stdDeviation', '3');
+  blur.setAttribute('result', 'glow');
+  const merge = document.createElementNS(svgNS, 'feMerge');
+  const m1 = document.createElementNS(svgNS, 'feMergeNode');
+  m1.setAttribute('in', 'glow');
+  const m2 = document.createElementNS(svgNS, 'feMergeNode');
+  m2.setAttribute('in', 'SourceGraphic');
+  merge.appendChild(m1);
+  merge.appendChild(m2);
+  filter.appendChild(blur);
+  filter.appendChild(merge);
+  defs.appendChild(filter);
+
+  graphEl.appendChild(defs);
+
+  graphGroup = document.createElementNS(svgNS, 'g');
+  graphGroup.setAttribute('id', 'graphGroup');
+  graphEl.appendChild(graphGroup);
+}
+
+function getNodeCenter(node) {
+  const w = getNodeWidth(node);
+  const h = 44;
+  return { x: node.x + w / 2, y: node.y + h / 2 };
+}
+
+function getNodeWidth(node) {
+  return Math.max(120, node.label.length * 9 + 24);
+}
+
+function render() {
+  while (graphGroup.firstChild) graphGroup.removeChild(graphGroup.firstChild);
+
+  const visibleLayers = new Set(Object.keys(state.layers).filter(k => state.layers[k]));
+  const visibleNodes = NODES.filter(n => visibleLayers.has(n.layer));
+  const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
+
+  // — Layer group backgrounds —
+  const layerBounds = {};
+  visibleNodes.forEach(n => {
+    if (!layerBounds[n.layer]) layerBounds[n.layer] = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+    const w = getNodeWidth(n);
+    const b = layerBounds[n.layer];
+    b.minX = Math.min(b.minX, n.x);
+    b.minY = Math.min(b.minY, n.y);
+    b.maxX = Math.max(b.maxX, n.x + w);
+    b.maxY = Math.max(b.maxY, n.y + 44);
+  });
+
+  Object.entries(layerBounds).forEach(([layer, b]) => {
+    const pad = 20;
+    const rect = document.createElementNS(svgNS, 'rect');
+    rect.setAttribute('x', b.minX - pad);
+    rect.setAttribute('y', b.minY - pad);
+    rect.setAttribute('width', b.maxX - b.minX + pad * 2);
+    rect.setAttribute('height', b.maxY - b.minY + pad * 2);
+    rect.setAttribute('rx', '10');
+    rect.setAttribute('fill', LAYERS[layer].color + '08');
+    rect.setAttribute('stroke', LAYERS[layer].color + '20');
+    rect.setAttribute('stroke-width', '1');
+    graphGroup.appendChild(rect);
+
+    const label = document.createElementNS(svgNS, 'text');
+    label.setAttribute('x', b.minX - pad + 8);
+    label.setAttribute('y', b.minY - pad + 14);
+    label.setAttribute('font-size', '10');
+    label.setAttribute('fill', LAYERS[layer].color + '60');
+    label.setAttribute('font-weight', '600');
+    label.textContent = LAYERS[layer].label;
+    graphGroup.appendChild(label);
+  });
+
+  // — Connections —
+  const connGroup = document.createElementNS(svgNS, 'g');
+  CONNECTIONS.forEach(c => {
+    if (!visibleNodeIds.has(c.from) || !visibleNodeIds.has(c.to)) return;
+    const fromNode = NODES.find(n => n.id === c.from);
+    const toNode = NODES.find(n => n.id === c.to);
+    const from = getNodeCenter(fromNode);
+    const to = getNodeCenter(toNode);
+
+    const isHighlighted = state.selectedNode &&
+      (c.from === state.selectedNode || c.to === state.selectedNode);
+    const isHoverHL = state.hoveredNode &&
+      (c.from === state.hoveredNode || c.to === state.hoveredNode);
+
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const cx1 = from.x + dx * 0.3;
+    const cy1 = from.y;
+    const cx2 = to.x - dx * 0.3;
+    const cy2 = to.y;
+
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', `M${from.x},${from.y} C${cx1},${cy1} ${cx2},${cy2} ${to.x},${to.y}`);
+    path.setAttribute('fill', 'none');
+
+    if (isHighlighted || isHoverHL) {
+      const isOutgoing = c.from === (state.selectedNode || state.hoveredNode);
+      path.setAttribute('stroke', isOutgoing ? '#58a6ff' : '#bc8cff');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-opacity', '0.8');
+      path.setAttribute('marker-end', 'url(#arrow-highlight)');
+    } else {
+      path.setAttribute('stroke', '#484f58');
+      path.setAttribute('stroke-width', '1');
+      path.setAttribute('stroke-opacity', '0.3');
+      path.setAttribute('marker-end', 'url(#arrow-dep)');
+    }
+    connGroup.appendChild(path);
+  });
+  graphGroup.appendChild(connGroup);
+
+  // — Flow overlays —
+  if (state.showFlowInit) renderFlowPath(FLOW_INIT, '#3fb950', 'init');
+  if (state.showFlowLoop) renderFlowPath(FLOW_LOOP, '#f0883e', 'loop');
+
+  // — Nodes —
+  visibleNodes.forEach(node => {
+    const w = getNodeWidth(node);
+    const h = 44;
+    const layer = LAYERS[node.layer];
+    const isSelected = state.selectedNode === node.id;
+    const isHovered = state.hoveredNode === node.id;
+    const hasComment = state.comments.some(c => c.target === node.id);
+
+    const g = document.createElementNS(svgNS, 'g');
+    g.setAttribute('data-node', node.id);
+    g.style.cursor = 'pointer';
+
+    // Shadow
+    const shadow = document.createElementNS(svgNS, 'rect');
+    shadow.setAttribute('x', node.x + 2);
+    shadow.setAttribute('y', node.y + 2);
+    shadow.setAttribute('width', w);
+    shadow.setAttribute('height', h);
+    shadow.setAttribute('rx', '8');
+    shadow.setAttribute('fill', 'rgba(0,0,0,0.3)');
+    g.appendChild(shadow);
+
+    // Body
+    const rect = document.createElementNS(svgNS, 'rect');
+    rect.setAttribute('x', node.x);
+    rect.setAttribute('y', node.y);
+    rect.setAttribute('width', w);
+    rect.setAttribute('height', h);
+    rect.setAttribute('rx', '8');
+    rect.setAttribute('fill', layer.nodeFill);
+    rect.setAttribute('stroke', isSelected ? '#58a6ff' : isHovered ? layer.color : hasComment ? '#d29922' : layer.nodeBorder);
+    rect.setAttribute('stroke-width', isSelected ? '2.5' : isHovered ? '2' : hasComment ? '2' : '1');
+    if (isSelected || isHovered) {
+      rect.setAttribute('filter', 'url(#glow)');
+    }
+    g.appendChild(rect);
+
+    // Layer dot
+    const dot = document.createElementNS(svgNS, 'circle');
+    dot.setAttribute('cx', node.x + 12);
+    dot.setAttribute('cy', node.y + 15);
+    dot.setAttribute('r', '4');
+    dot.setAttribute('fill', layer.color);
+    g.appendChild(dot);
+
+    // Title
+    const title = document.createElementNS(svgNS, 'text');
+    title.setAttribute('x', node.x + 22);
+    title.setAttribute('y', node.y + 18);
+    title.setAttribute('font-size', '12');
+    title.setAttribute('font-weight', '600');
+    title.setAttribute('fill', '#e6edf3');
+    title.setAttribute('font-family', "'SF Mono', 'Fira Code', monospace");
+    title.textContent = node.label;
+    g.appendChild(title);
+
+    // Subtitle
+    const sub = document.createElementNS(svgNS, 'text');
+    sub.setAttribute('x', node.x + 12);
+    sub.setAttribute('y', node.y + 34);
+    sub.setAttribute('font-size', '9');
+    sub.setAttribute('fill', '#8b949e');
+    sub.textContent = LAYERS[node.layer].label;
+    g.appendChild(sub);
+
+    // Comment indicator
+    if (hasComment) {
+      const ci = document.createElementNS(svgNS, 'circle');
+      ci.setAttribute('cx', node.x + w - 8);
+      ci.setAttribute('cy', node.y + 8);
+      ci.setAttribute('r', '5');
+      ci.setAttribute('fill', '#d29922');
+      g.appendChild(ci);
+      const ct = document.createElementNS(svgNS, 'text');
+      ct.setAttribute('x', node.x + w - 8);
+      ct.setAttribute('y', node.y + 11);
+      ct.setAttribute('font-size', '7');
+      ct.setAttribute('fill', '#fff');
+      ct.setAttribute('text-anchor', 'middle');
+      ct.setAttribute('font-weight', '700');
+      ct.textContent = state.comments.filter(c => c.target === node.id).length;
+      g.appendChild(ct);
+    }
+
+    // No per-node listeners — handled by event delegation on SVG
+
+    graphGroup.appendChild(g);
+  });
+
+  updateTransform();
+  renderMinimap();
+}
+
+function renderFlowPath(flowIds, color, type) {
+  const visibleFlowNodes = flowIds.map(id => NODES.find(n => n.id === id)).filter(Boolean).filter(n => state.layers[n.layer]);
+  for (let i = 0; i < visibleFlowNodes.length - 1; i++) {
+    const from = getNodeCenter(visibleFlowNodes[i]);
+    const to = getNodeCenter(visibleFlowNodes[i + 1]);
+    const dx = to.x - from.x;
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('d', `M${from.x},${from.y} C${from.x + dx * 0.4},${from.y} ${to.x - dx * 0.4},${to.y} ${to.x},${to.y}`);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width', '3');
+    path.setAttribute('stroke-opacity', '0.6');
+    path.setAttribute('stroke-dasharray', '8 6');
+    path.setAttribute('marker-end', `url(#arrow-${type})`);
+    path.classList.add('flow-path');
+    graphGroup.appendChild(path);
+  }
+}
+
+function updateTransform() {
+  graphGroup.setAttribute('transform', `translate(${state.panX},${state.panY}) scale(${state.zoom})`);
+}
+
+// ——— MINIMAP ———
+function renderMinimap() {
+  const mmSvg = document.getElementById('minimapSvg');
+  while (mmSvg.firstChild) mmSvg.removeChild(mmSvg.firstChild);
+
+  const allNodes = NODES.filter(n => state.layers[n.layer]);
+  if (allNodes.length === 0) return;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  allNodes.forEach(n => {
+    const w = getNodeWidth(n);
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + w);
+    maxY = Math.max(maxY, n.y + 44);
+  });
+
+  const pad = 30;
+  const worldW = maxX - minX + pad * 2;
+  const worldH = maxY - minY + pad * 2;
+  const mmW = 160;
+  const mmH = 110;
+  const scale = Math.min(mmW / worldW, mmH / worldH);
+
+  allNodes.forEach(n => {
+    const rect = document.createElementNS(svgNS, 'rect');
+    const nx = (n.x - minX + pad) * scale;
+    const ny = (n.y - minY + pad) * scale;
+    const nw = getNodeWidth(n) * scale;
+    const nh = 44 * scale;
+    rect.setAttribute('x', nx);
+    rect.setAttribute('y', ny);
+    rect.setAttribute('width', Math.max(nw, 3));
+    rect.setAttribute('height', Math.max(nh, 2));
+    rect.setAttribute('rx', '1');
+    rect.setAttribute('fill', LAYERS[n.layer].color);
+    rect.setAttribute('opacity', n.id === state.selectedNode ? '1' : '0.5');
+    mmSvg.appendChild(rect);
+  });
+
+  // Viewport indicator
+  const canvasRect = canvasArea.getBoundingClientRect();
+  const vpX = (-state.panX / state.zoom - minX + pad) * scale;
+  const vpY = (-state.panY / state.zoom - minY + pad) * scale;
+  const vpW = (canvasRect.width / state.zoom) * scale;
+  const vpH = (canvasRect.height / state.zoom) * scale;
+
+  const vp = document.createElementNS(svgNS, 'rect');
+  vp.setAttribute('x', Math.max(0, vpX));
+  vp.setAttribute('y', Math.max(0, vpY));
+  vp.setAttribute('width', Math.min(vpW, mmW));
+  vp.setAttribute('height', Math.min(vpH, mmH));
+  vp.classList.add('minimap-viewport');
+  mmSvg.appendChild(vp);
+}
+
+// ——— INTERACTION ———
+function screenToSvg(cx, cy) {
+  const rect = canvasArea.getBoundingClientRect();
+  return {
+    x: (cx - rect.left - state.panX) / state.zoom,
+    y: (cy - rect.top - state.panY) / state.zoom,
+  };
+}
+
+// ——— Event delegation on SVG (robust: works even after render() recreates nodes) ———
+function findNodeId(el) {
+  while (el && el !== graphEl) {
+    if (el.dataset && el.dataset.node) return el.dataset.node;
+    el = el.parentElement || el.parentNode;
+  }
+  return null;
+}
+
+graphEl.addEventListener('mousedown', (e) => {
+  const nodeId = findNodeId(e.target);
+  if (nodeId) {
+    e.stopPropagation();
+    state.dragging = nodeId;
+    state.dragStartX = e.clientX;
+    state.dragStartY = e.clientY;
+    const node = NODES.find(n => n.id === nodeId);
+    const svgPt = screenToSvg(e.clientX, e.clientY);
+    state.dragOffsetX = svgPt.x - node.x;
+    state.dragOffsetY = svgPt.y - node.y;
+    state.dragMoved = false;
+  } else {
+    // Pan
+    state.panning = true;
+    state.panStartX = e.clientX - state.panX;
+    state.panStartY = e.clientY - state.panY;
+    graphEl.classList.add('grabbing');
+  }
+});
+
+graphEl.addEventListener('click', (e) => {
+  const nodeId = findNodeId(e.target);
+  if (nodeId && !state.dragMoved) {
+    selectNode(nodeId);
+  } else if (!nodeId) {
+    closeDetail();
+  }
+  state.dragMoved = false;
+});
+
+graphEl.addEventListener('dblclick', (e) => {
+  const nodeId = findNodeId(e.target);
+  if (nodeId) openCommentModal(nodeId);
+});
+
+graphEl.addEventListener('mousemove', (e) => {
+  if (state.dragging || state.panning) return;
+  const nodeId = findNodeId(e.target);
+  if (nodeId !== state.hoveredNode) {
+    state.hoveredNode = nodeId;
+    render();
+  }
+  if (nodeId) {
+    const node = NODES.find(n => n.id === nodeId);
+    showTooltip(e, node);
+  } else {
+    hideTooltip();
+  }
+});
+
+graphEl.addEventListener('mouseleave', () => {
+  if (state.hoveredNode) {
+    state.hoveredNode = null;
+    render();
+  }
+  hideTooltip();
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (state.panning) {
+    state.panX = e.clientX - state.panStartX;
+    state.panY = e.clientY - state.panStartY;
+    updateTransform();
+    renderMinimap();
+  }
+  if (state.dragging) {
+    const dx = e.clientX - state.dragStartX;
+    const dy = e.clientY - state.dragStartY;
+    if (!state.dragMoved && (dx * dx + dy * dy) < 16) return;
+    const svgPt = screenToSvg(e.clientX, e.clientY);
+    const node = NODES.find(n => n.id === state.dragging);
+    if (node) {
+      node.x = svgPt.x - state.dragOffsetX;
+      node.y = svgPt.y - state.dragOffsetY;
+      state.dragMoved = true;
+      render();
+    }
+  }
+});
+
+window.addEventListener('mouseup', () => {
+  if (state.panning) {
+    state.panning = false;
+    graphEl.classList.remove('grabbing');
+  }
+  state.dragging = null;
+});
+
+// Zoom with scroll
+canvasArea.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = canvasArea.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+
+  const oldZoom = state.zoom;
+  const delta = e.deltaY > 0 ? 0.92 : 1.08;
+  state.zoom = Math.min(3, Math.max(0.2, state.zoom * delta));
+
+  // Zoom toward mouse
+  state.panX = mouseX - (mouseX - state.panX) * (state.zoom / oldZoom);
+  state.panY = mouseY - (mouseY - state.panY) * (state.zoom / oldZoom);
+
+  updateTransform();
+  renderMinimap();
+  document.getElementById('zoomLevel').textContent = Math.round(state.zoom * 100) + '%';
+}, { passive: false });
+
+function zoomIn() {
+  const rect = canvasArea.getBoundingClientRect();
+  const cx = rect.width / 2, cy = rect.height / 2;
+  const oldZoom = state.zoom;
+  state.zoom = Math.min(3, state.zoom * 1.25);
+  state.panX = cx - (cx - state.panX) * (state.zoom / oldZoom);
+  state.panY = cy - (cy - state.panY) * (state.zoom / oldZoom);
+  updateTransform();
+  renderMinimap();
+  document.getElementById('zoomLevel').textContent = Math.round(state.zoom * 100) + '%';
+}
+
+function zoomOut() {
+  const rect = canvasArea.getBoundingClientRect();
+  const cx = rect.width / 2, cy = rect.height / 2;
+  const oldZoom = state.zoom;
+  state.zoom = Math.max(0.2, state.zoom * 0.8);
+  state.panX = cx - (cx - state.panX) * (state.zoom / oldZoom);
+  state.panY = cy - (cy - state.panY) * (state.zoom / oldZoom);
+  updateTransform();
+  renderMinimap();
+  document.getElementById('zoomLevel').textContent = Math.round(state.zoom * 100) + '%';
+}
+
+function zoomReset() {
+  state.zoom = 1;
+  state.panX = 0;
+  state.panY = 0;
+  updateTransform();
+  renderMinimap();
+  document.getElementById('zoomLevel').textContent = '100%';
+}
+
+function zoomFit() {
+  const allNodes = NODES.filter(n => state.layers[n.layer]);
+  if (allNodes.length === 0) return;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  allNodes.forEach(n => {
+    const w = getNodeWidth(n);
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + w);
+    maxY = Math.max(maxY, n.y + 44);
+  });
+
+  const rect = canvasArea.getBoundingClientRect();
+  const pad = 60;
+  const worldW = maxX - minX + pad * 2;
+  const worldH = maxY - minY + pad * 2;
+  state.zoom = Math.min(rect.width / worldW, rect.height / worldH, 1.5);
+  state.panX = (rect.width - worldW * state.zoom) / 2 - (minX - pad) * state.zoom;
+  state.panY = (rect.height - worldH * state.zoom) / 2 - (minY - pad) * state.zoom;
+  updateTransform();
+  renderMinimap();
+  document.getElementById('zoomLevel').textContent = Math.round(state.zoom * 100) + '%';
+}
+
+// Tooltip
+const tooltipEl = document.getElementById('tooltip');
+function showTooltip(e, node) {
+  tooltipEl.innerHTML = `<b>${node.label}</b><br><span class="tip-file">${node.subtitle}</span>`;
+  tooltipEl.classList.add('visible');
+  tooltipEl.style.left = (e.clientX + 14) + 'px';
+  tooltipEl.style.top = (e.clientY - 10) + 'px';
+}
+function hideTooltip() {
+  tooltipEl.classList.remove('visible');
+}
+
+// ——— NODE SELECTION & DETAIL PANEL ———
+function selectNode(id) {
+  state.selectedNode = id;
+  render();
+  openDetail(id);
+}
+
+function openDetail(id) {
+  const node = NODES.find(n => n.id === id);
+  if (!node) return;
+  const layer = LAYERS[node.layer];
+  const panel = document.getElementById('detailPanel');
+  panel.classList.add('open');
+
+  document.getElementById('detailTitle').textContent = node.label;
+  document.getElementById('detailSubtitle').textContent = node.subtitle;
+
+  // Wire up the always-visible comment button in the header
+  const commentBtn = document.getElementById('detailCommentBtn');
+  const newBtn = commentBtn.cloneNode(true);
+  commentBtn.parentNode.replaceChild(newBtn, commentBtn);
+  newBtn.addEventListener('click', () => openCommentModal(id));
+
+  const body = document.getElementById('detailBody');
+  let html = '';
+
+  // Layer badge
+  html += `<div class="detail-section"><div class="detail-section-title">Layer</div>`;
+  html += `<span class="detail-badge" style="background:${layer.color}22;color:${layer.color};border:1px solid ${layer.color}44">${layer.label}</span>`;
+  html += `</div>`;
+
+  // Description
+  html += `<div class="detail-section"><div class="detail-section-title">Purpose</div>`;
+  html += `<div class="detail-desc">${node.desc}</div></div>`;
+
+  // Exports
+  html += `<div class="detail-section"><div class="detail-section-title">Key Exports</div>`;
+  html += `<ul class="detail-exports">`;
+  node.exports.forEach(exp => {
+    html += `<li>${exp}</li>`;
+  });
+  html += `</ul></div>`;
+
+  // Code Snippets
+  if (node.snippets && node.snippets.length > 0) {
+    html += `<div class="detail-section"><div class="detail-section-title">Code</div>`;
+    node.snippets.forEach(s => {
+      html += `<div style="font-size:10px;color:var(--text-dim);margin-bottom:4px;font-weight:600">${s.title}</div>`;
+      html += `<div class="detail-code-block">${s.code}</div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Dependencies (outgoing)
+  const outgoing = CONNECTIONS.filter(c => c.from === id);
+  if (outgoing.length > 0) {
+    html += `<div class="detail-section"><div class="detail-section-title">Imports From (${outgoing.length})</div>`;
+    outgoing.forEach(c => {
+      const target = NODES.find(n => n.id === c.to);
+      if (target) {
+        html += `<div class="detail-dep" data-nav="${c.to}"><span class="arrow" style="color:var(--blue)">→</span> ${target.label} <span style="color:var(--text-dim);font-size:10px">${LAYERS[target.layer].label}</span></div>`;
+      }
+    });
+    html += `</div>`;
+  }
+
+  // Imported by (incoming)
+  const incoming = CONNECTIONS.filter(c => c.to === id);
+  if (incoming.length > 0) {
+    html += `<div class="detail-section"><div class="detail-section-title">Imported By (${incoming.length})</div>`;
+    incoming.forEach(c => {
+      const source = NODES.find(n => n.id === c.from);
+      if (source) {
+        html += `<div class="detail-dep" data-nav="${c.from}"><span class="arrow" style="color:var(--purple)">←</span> ${source.label} <span style="color:var(--text-dim);font-size:10px">${LAYERS[source.layer].label}</span></div>`;
+      }
+    });
+    html += `</div>`;
+  }
+
+  body.innerHTML = html;
+
+  // Use event delegation for dependency navigation clicks
+  body.querySelectorAll('.detail-dep[data-nav]').forEach(el => {
+    el.addEventListener('click', () => selectNode(el.dataset.nav));
+  });
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+  state.selectedNode = null;
+  render();
+}
+
+// ——— LAYER TOGGLES ———
+function buildLayerToggles() {
+  const container = document.getElementById('layerToggles');
+  Object.entries(LAYERS).forEach(([key, layer]) => {
+    const count = NODES.filter(n => n.layer === key).length;
+    const label = document.createElement('label');
+    label.className = 'layer-toggle';
+    label.innerHTML = `
+      <input type="checkbox" ${state.layers[key] ? 'checked' : ''} onchange="toggleLayer('${key}', this.checked)" />
+      <div class="check-box"></div>
+      <div class="layer-dot" style="background:${layer.color}"></div>
+      <span>${layer.label}</span>
+      <span class="layer-count">${count}</span>
+    `;
+    container.appendChild(label);
+  });
+}
+
+function toggleLayer(key, checked) {
+  state.layers[key] = checked;
+  render();
+}
+
+// ——— PRESETS ———
+function applyPreset(name) {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const presets = {
+    all: () => Object.keys(LAYERS).forEach(k => state.layers[k] = true),
+    ai: () => {
+      Object.keys(LAYERS).forEach(k => state.layers[k] = false);
+      state.layers.ai = true;
+      state.layers.state = true;
+    },
+    ui: () => {
+      Object.keys(LAYERS).forEach(k => state.layers[k] = false);
+      state.layers.ui = true;
+      state.layers.managers = true;
+    },
+    core: () => {
+      Object.keys(LAYERS).forEach(k => state.layers[k] = false);
+      state.layers.core = true;
+      state.layers.managers = true;
+      state.layers.ai = true;
+    },
+    data: () => {
+      Object.keys(LAYERS).forEach(k => state.layers[k] = false);
+      state.layers.state = true;
+      state.layers.auth = true;
+      state.layers.cli = true;
+    },
+  };
+
+  if (presets[name]) presets[name]();
+
+  // Update checkboxes
+  document.querySelectorAll('#layerToggles input[type=checkbox]').forEach((cb, i) => {
+    const key = Object.keys(LAYERS)[i];
+    cb.checked = state.layers[key];
+  });
+
+  render();
+  setTimeout(zoomFit, 50);
+}
+
+// ——— FLOW OVERLAYS ———
+function toggleFlow(type) {
+  if (type === 'init') state.showFlowInit = document.getElementById('flowInit').checked;
+  if (type === 'loop') state.showFlowLoop = document.getElementById('flowLoop').checked;
+  render();
+}
+
+// ——— SEARCH ———
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (q.length < 2) {
+    searchResults.classList.remove('open');
+    return;
+  }
+
+  const results = [];
+  NODES.forEach(node => {
+    const matches = [];
+    if (node.label.toLowerCase().includes(q)) matches.push('name');
+    if (node.desc.toLowerCase().includes(q)) matches.push('description');
+    if (node.exports.some(e => e.toLowerCase().includes(q))) matches.push('export');
+    if (LAYERS[node.layer].label.toLowerCase().includes(q)) matches.push('layer');
+
+    if (matches.length > 0) {
+      results.push({ node, matches });
+    }
+  });
+
+  if (results.length === 0) {
+    searchResults.innerHTML = '<div class="search-result-item"><div class="search-result-desc">No results found</div></div>';
+  } else {
+    searchResults.innerHTML = results.map(r => `
+      <div class="search-result-item" onclick="searchSelect('${r.node.id}')">
+        <div class="search-result-name">${r.node.label}</div>
+        <div class="search-result-desc">Match in: ${r.matches.join(', ')}</div>
+      </div>
+    `).join('');
+  }
+  searchResults.classList.add('open');
+});
+
+searchInput.addEventListener('blur', () => {
+  setTimeout(() => searchResults.classList.remove('open'), 200);
+});
+
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    searchInput.value = '';
+    searchResults.classList.remove('open');
+    searchInput.blur();
+  }
+});
+
+function searchSelect(id) {
+  searchInput.value = '';
+  searchResults.classList.remove('open');
+
+  // Ensure layer visible
+  const node = NODES.find(n => n.id === id);
+  if (node && !state.layers[node.layer]) {
+    state.layers[node.layer] = true;
+    document.querySelectorAll('#layerToggles input[type=checkbox]').forEach((cb, i) => {
+      const key = Object.keys(LAYERS)[i];
+      cb.checked = state.layers[key];
+    });
+  }
+
+  selectNode(id);
+
+  // Pan to node
+  const canvasRect = canvasArea.getBoundingClientRect();
+  const nw = getNodeWidth(node);
+  state.panX = canvasRect.width / 2 - (node.x + nw / 2) * state.zoom;
+  state.panY = canvasRect.height / 2 - (node.y + 22) * state.zoom;
+  updateTransform();
+  renderMinimap();
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if (e.key === 'Escape') {
+    closeDetail();
+    closeCommentModal();
+  }
+});
+
+// ——— COMMENTS ———
+let commentTarget = null;
+
+function openCommentModal(nodeId) {
+  commentTarget = nodeId;
+  const node = NODES.find(n => n.id === nodeId);
+  if (!node) return;
+  document.getElementById('modalTitle').textContent = node.label;
+  document.getElementById('modalSubtitle').textContent = node.subtitle;
+  document.getElementById('modalTextarea').value = '';
+  document.getElementById('commentModal').classList.add('open');
+  setTimeout(() => document.getElementById('modalTextarea').focus(), 100);
+}
+
+function closeCommentModal() {
+  document.getElementById('commentModal').classList.remove('open');
+  commentTarget = null;
+}
+
+// Ctrl/Cmd+Enter to save comment from textarea
+document.getElementById('modalTextarea').addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault();
+    saveComment();
+  }
+});
+
+// Click overlay background to close modal; stop clicks on the modal itself from closing
+document.getElementById('commentModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('commentModal')) {
+    closeCommentModal();
+  }
+});
+document.querySelector('#commentModal .modal').addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
+function saveComment() {
+  const text = document.getElementById('modalTextarea').value.trim();
+  if (!text || !commentTarget) return;
+
+  const node = NODES.find(n => n.id === commentTarget);
+  const targetId = commentTarget;
+  state.comments.push({
+    id: Date.now(),
+    target: targetId,
+    targetLabel: node.label,
+    targetFile: node.subtitle,
+    text,
+  });
+
+  closeCommentModal();
+  renderComments();
+  updatePrompt();
+  render();
+  // Refresh detail panel if it was showing this node
+  if (state.selectedNode === targetId) {
+    openDetail(targetId);
+  }
+}
+
+function deleteComment(id) {
+  state.comments = state.comments.filter(c => c.id !== id);
+  renderComments();
+  updatePrompt();
+  render();
+}
+
+function renderComments() {
+  const list = document.getElementById('commentList');
+  const noComments = document.getElementById('noComments');
+  const count = document.getElementById('commentCount');
+  count.textContent = state.comments.length;
+
+  if (state.comments.length === 0) {
+    noComments.style.display = 'block';
+    list.innerHTML = '';
+    return;
+  }
+
+  noComments.style.display = 'none';
+  list.innerHTML = state.comments.map(c => `
+    <div class="comment-item">
+      <div class="comment-target">${c.targetLabel}</div>
+      <div class="comment-file">${c.targetFile}</div>
+      <div class="comment-text">${c.text}</div>
+      <button class="comment-delete" onclick="deleteComment(${c.id})">×</button>
+    </div>
+  `).join('');
+}
+
+// ——— PROMPT ———
+function updatePrompt() {
+  if (state.comments.length === 0) {
+    if (state.promptVisible) togglePromptBar();
+    return;
+  }
+
+  if (!state.promptVisible) togglePromptBar();
+
+  const visibleLayerNames = Object.keys(state.layers).filter(k => state.layers[k]).map(k => LAYERS[k].label);
+  const allVisible = visibleLayerNames.length === Object.keys(LAYERS).length;
+
+  let prompt = `This is the claude-tutor architecture`;
+  if (!allVisible && visibleLayerNames.length > 0) {
+    prompt += `, focusing on the ${visibleLayerNames.join(', ')} layers`;
+  }
+  prompt += `.\n\nFeedback on specific components:\n`;
+
+  state.comments.forEach(c => {
+    prompt += `\n**${c.targetLabel}** (${c.targetFile}):\n${c.text}\n`;
+  });
+
+  document.getElementById('promptText').textContent = prompt;
+}
+
+function togglePromptBar() {
+  state.promptVisible = !state.promptVisible;
+  document.getElementById('promptBar').classList.toggle('open', state.promptVisible);
+}
+
+function copyPrompt() {
+  const text = document.getElementById('promptText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy Prompt'; }, 1500);
+  });
+}
+
+// ——— INIT ———
+initGraph();
+buildLayerToggles();
+render();
+setTimeout(zoomFit, 100);
+</script>
+</body>
+</html>
