@@ -1,4 +1,4 @@
-# Libby Line Edits
+# Write Review Playground
 
 A single-file HTML tool for reviewing line edits on blog posts and prose. Paste your original and edited text, get a word-level diff, then accept or reject each change individually.
 
@@ -50,9 +50,9 @@ Iterates through the full diff operations. For each edit:
 
 ## Usage
 
-Open `libby-line-edits.html` directly in any browser. No build step, no dependencies, no server required.
+Open `write-review-playground.html` directly in any browser. No build step, no dependencies, no server required.
 
-Click **Load Sample** to see it in action with example text demonstrating typical Libby-style edits: removing filler words, tightening prose, strengthening verbs, and cutting unnecessary qualifiers.
+Click **Load Sample** to see it in action with example text demonstrating typical prose edits: removing filler words, tightening prose, strengthening verbs, and cutting unnecessary qualifiers.
 
 ## Technical details
 
